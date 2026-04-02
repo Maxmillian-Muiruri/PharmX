@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
   AUTH_URL_PREFIX,
@@ -7,51 +8,66 @@ import {
   SIGNUP_URL,
 } from "../utils";
 
+type HeaderProps = {
+  cartItemCount?: number;
+  onCartClick?: () => void;
+};
+
 const navLinks = [
   { to: ROOT_URL_PREFIX, label: "Home" },
   { to: AUTH_URL_PREFIX, label: "Sign in" },
   { to: SIGNUP_URL, label: "Sign up" },
   { to: PRODUCTLIST_URL, label: "Products" },
   { to: CART_URL, label: "Cart" },
-  { to: ROOT_URL_PREFIX, label: "About" },
+  { to: "/about", label: "About" },
   { to: ROOT_URL_PREFIX, label: "Contact" },
 ];
 
-export function Header() {
+export function Header({ cartItemCount = 0, onCartClick }: HeaderProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+
   return (
-    <header className="sticky top-0 z-20 w-full border-b border-slate-200/70 bg-white/95 backdrop-blur">
+    <header className="bg-white border-b border-slate-200/70 sticky top-0 z-50">
       <div className="mx-auto max-w-6xl px-5 py-4">
-        <div className="flex items-center justify-between gap-6">
+        <div className="flex items-center justify-between gap-4">
+          {/* Logo */}
           <NavLink
-            className="text-xl font-medium tracking-tight text-slate-900"
+            className="flex items-center cursor-pointer flex-shrink-0"
             to={ROOT_URL_PREFIX}
           >
-            <span className="text-xs text-slate-500">PharmX </span>
-            <span className="text-base font-semibold">NOUN</span>
+            <span className="text-xl font-medium tracking-tight text-slate-900">
+              <span className="text-xs text-slate-500">PharmX </span>
+              {/* <span className="text-base font-semibold">NOUN</span> */}
+            </span>
           </NavLink>
 
-          <div className="flex items-center gap-8">
-            {navLinks.map((link) => (
-              <NavLink
-                className={({ isActive }) =>
-                  `text-sm transition-colors ${
-                    isActive
-                      ? "text-slate-900 font-medium"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`
-                }
-                key={link.to}
-                to={link.to}
-              >
-                {link.label}
-              </NavLink>
-            ))}
-          </div>
+          {/* Navigation - Desktop */}
+          <nav className="hidden lg:block flex-1">
+            <ul className="flex justify-center space-x-6">
+              {navLinks.map((link) => (
+                <li key={link.to}>
+                  <NavLink
+                    className={({ isActive }) =>
+                      `text-sm transition-colors font-medium ${
+                        isActive
+                          ? "text-slate-900"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`
+                    }
+                    to={link.to}
+                  >
+                    {link.label}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </nav>
 
-          <div className="flex items-center gap-4">
-            <button className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 transition-colors">
+          {/* Actions */}
+          <div className="flex items-center gap-4 flex-shrink-0">
+            <button className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 transition-colors hidden md:flex">
               <svg
-                className="h-5 w-5"
+                className="h-4 w-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -66,9 +82,59 @@ export function Header() {
               Account
             </button>
 
-            <NavLink
-              className="text-slate-600 hover:text-slate-900 transition-colors"
-              to={CART_URL}
+            {onCartClick ? (
+              <button
+                onClick={onCartClick}
+                className="relative text-slate-600 hover:text-slate-900 transition-colors"
+              >
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 8a2 2 0 100-4 2 2 0 000 4z"
+                  />
+                </svg>
+                {cartItemCount > 0 && (
+                  <span className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
+                    {cartItemCount}
+                  </span>
+                )}
+              </button>
+            ) : (
+              <NavLink
+                to={CART_URL}
+                className="relative text-slate-600 hover:text-slate-900 transition-colors"
+              >
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 8a2 2 0 100-4 2 2 0 000 4z"
+                  />
+                </svg>
+                {cartItemCount > 0 && (
+                  <span className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
+                    {cartItemCount}
+                  </span>
+                )}
+              </NavLink>
+            )}
+
+            <button
+              className="lg:hidden text-slate-600 hover:text-slate-900 transition-colors"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               <svg
                 className="h-5 w-5"
@@ -79,20 +145,19 @@ export function Header() {
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 8a2 2 0 100-4 2 2 0 000 4z"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
                 />
               </svg>
-            </NavLink>
+            </button>
           </div>
         </div>
-      </div>
 
-      <div className="border-t border-slate-100 px-5 py-3">
-        <div className="mx-auto max-w-2xl">
-          <div className="relative">
+        {/* Search bar - Centered below */}
+        <div className="mt-4 hidden md:block">
+          <div className="relative max-w-2xl mx-auto">
             <svg
-              className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400"
+              className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -111,6 +176,55 @@ export function Header() {
             />
           </div>
         </div>
+
+        {/* Mobile search */}
+        <div className="mt-4 md:hidden">
+          <div className="relative">
+            <svg
+              className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search medicines..."
+              className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-400 focus:outline-none"
+            />
+          </div>
+        </div>
+
+        {/* Mobile menu */}
+        {isMenuOpen && (
+          <nav className="mt-4 lg:hidden border-t border-slate-200 pt-4">
+            <ul className="space-y-2">
+              {navLinks.map((link) => (
+                <li key={link.to}>
+                  <NavLink
+                    onClick={() => setIsMenuOpen(false)}
+                    className={({ isActive }) =>
+                      `block w-full text-left py-2 text-sm transition-colors ${
+                        isActive
+                          ? "text-slate-900 font-medium"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`
+                    }
+                    to={link.to}
+                  >
+                    {link.label}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
       </div>
     </header>
   );
