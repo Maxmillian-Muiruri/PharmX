@@ -4,7 +4,7 @@ export const AUTH_URL_PREFIX = "/auth";
 
 export const LOGIN_URL = "/signin";
 
-export const SIGNUP_URL = "/signup";
+export const SIGNUP_URL = `${AUTH_URL_PREFIX}/signup`;
 
 export const PRODUCTLIST_URL = "/products";
 

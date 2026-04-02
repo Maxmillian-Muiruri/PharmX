@@ -2,8 +2,7 @@ import { Outlet } from "react-router-dom";
 
 export const Auth = () => {
   return (
-    <div>
-      <h1>Auth</h1>
+    <div className="flex flex-col items-center justify-center h-screen">
       <Outlet />
     </div>
   );
