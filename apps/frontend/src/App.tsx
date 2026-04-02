@@ -5,10 +5,7 @@ import { Error404Page, ErrorPage } from "./components/dev/core";
 import {
   AUTH_URL_PREFIX,
   CART_URL,
-  LOGIN_URL,
-  PRODUCTDETAIL_URL,
   PRODUCTLIST_URL,
-  ROOT_URL_PREFIX,
   SIGNUP_URL,
 } from "./utils";
 import { Auth } from "./app/auth/page";
@@ -30,7 +27,6 @@ function App() {
       Component: RootLayout,
       children: [
         {
-          path: ROOT_URL_PREFIX,
           Component: HomePage,
           index: true,
         },
@@ -41,7 +37,6 @@ function App() {
           path: AUTH_URL_PREFIX,
           children: [
             {
-              path: LOGIN_URL,
               Component: Signin,
               index: true,
             },
@@ -64,7 +59,7 @@ function App() {
               index: true,
             },
             {
-              path: PRODUCTDETAIL_URL,
+              path: ":id",
               Component: ProductDetail,
             },
           ],
