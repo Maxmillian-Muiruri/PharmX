@@ -1,6 +1,5 @@
 import { useContext } from "react";
 import {
-  NavLink,
   Outlet,
   RouterProvider,
   createBrowserRouter,
@@ -22,50 +21,19 @@ import { ProductList } from "./app/products/page";
 import ProductsListLayout from "./app/products/layout";
 import { ProductDetail } from "./app/products/product/page";
 import { Cart } from "./app/cart/page";
+import { Footer } from "./components/Footer";
+import { Header } from "./components/Header";
 
 const AppLayout = () => {
-  const navItems = [
-    { to: ROOT_URL_PREFIX, label: "Home" },
-    { to: AUTH_URL_PREFIX, label: "Sign in" },
-    { to: SIGNUP_URL, label: "Sign up" },
-    { to: PRODUCTLIST_URL, label: "Products" },
-    { to: CART_URL, label: "Cart" },
-  ];
-
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="sticky top-0 z-20 w-full border-b border-slate-200/70 bg-white/95 px-5 py-5 shadow-sm backdrop-blur">
-        <nav className="mx-auto flex max-w-6xl items-center justify-between gap-6">
-          <NavLink
-            className="text-2xl font-semibold tracking-tight text-slate-900"
-            to={ROOT_URL_PREFIX}
-          >
-            PharmX
-          </NavLink>
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      <Header />
 
-          <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-slate-100/80 p-2">
-            {navItems.map((item) => (
-              <NavLink
-                className={({ isActive }) =>
-                  `rounded-xl px-5 py-2.5 text-base font-medium transition-colors ${
-                    isActive
-                      ? "bg-slate-900 text-white shadow-sm"
-                      : "text-slate-700 hover:bg-white hover:text-slate-900"
-                  }`
-                }
-                key={item.to}
-                to={item.to}
-              >
-                {item.label}
-              </NavLink>
-            ))}
-          </div>
-        </nav>
-      </header>
-
-      <main className="mx-auto max-w-6xl px-5 py-8">
+      <main className="mx-auto w-full max-w-6xl px-5 py-8">
         <Outlet />
       </main>
+
+      <Footer />
     </div>
   );
 };
