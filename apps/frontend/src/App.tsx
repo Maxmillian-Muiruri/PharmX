@@ -33,7 +33,7 @@ const AppLayout = () => {
       <div className="min-h-screen bg-slate-50 flex flex-col w-full">
         <Header />
 
-        <main className="w-full flex-1">
+        <main className="w-full flex-1 pt-16 md:pt-20">
           <Outlet />
         </main>
 

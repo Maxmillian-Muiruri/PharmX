@@ -53,7 +53,7 @@ export function NewsletterSection() {
             />
             <Button
               type="submit"
-              className="bg-white text-[#1a7a8c] hover:bg-[#f0f0f0] px-8 rounded-full font-semibold"
+              className="bg-white text-[#1a7a8c] hover:bg-[#f0f0f0] px-8 rounded-full font-semibold transition-all duration-200 hover:scale-105 active:scale-95"
             >
               Subscribe
             </Button>

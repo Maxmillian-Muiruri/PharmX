@@ -4,7 +4,7 @@ import { Apple, Smartphone, Star } from "lucide-react";
 
 export function AppBannerSection() {
   return (
-    <section className="py-24 bg-gray-900 text-white">
+    <section className="py-24 bg-[#0d4f5c] text-white">
       <div className="max-w-screen-xl mx-auto px-4 md:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left Side - CTA */}
@@ -59,9 +59,9 @@ export function AppBannerSection() {
           <div className="flex items-center justify-center">
             <div className="relative">
               {/* Phone Frame */}
-              <div className="mx-auto w-52 h-96 bg-gray-800 rounded-3xl border-8 border-gray-800 shadow-2xl overflow-hidden">
+              <div className="mx-auto w-52 h-96 bg-[#0a3d47] rounded-3xl border-8 border-[#0a3d47] shadow-2xl overflow-hidden">
                 {/* Notch */}
-                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-7 bg-gray-900 rounded-b-3xl z-10"></div>
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-7 bg-[#0d4f5c] rounded-b-3xl z-10"></div>
 
                 {/* Screen */}
                 <div className="w-full h-full bg-gradient-to-br from-[#1a7a8c] to-[#2d9caf] p-4 pt-8 flex flex-col justify-between">

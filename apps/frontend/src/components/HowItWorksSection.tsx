@@ -55,7 +55,10 @@ export function HowItWorksSection() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {steps.map((step, index) => (
-                <div key={index} className="relative group">
+                <div
+                  key={index}
+                  className="relative group flex flex-col items-center text-center gap-3"
+                >
                   {/* Step number badge */}
                   <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-10">
                     <span className="bg-gradient-to-br from-[#1a7a8c] to-[#2d9caf] text-white text-xl font-bold w-12 h-12 rounded-full flex items-center justify-center shadow-md">
@@ -64,14 +67,12 @@ export function HowItWorksSection() {
                   </div>
 
                   {/* Card */}
-                  <div className="bg-white rounded-2xl p-8 pt-12 border-2 border-cyan-100 hover:border-cyan-300 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 text-center h-full">
+                  <div className="bg-white rounded-2xl p-8 pt-12 border-2 border-cyan-100 hover:border-cyan-300 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 text-center h-full w-full">
                     {/* Icon Circle with animation */}
-                    <div className="relative mb-6 inline-block">
-                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-500 group-hover:scale-110">
-                        <step.icon className="h-10 w-10 text-white" />
-                      </div>
+                    <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-500 group-hover:scale-110 mx-auto flex-shrink-0 mb-6">
+                      <step.icon className="h-10 w-10 text-white" />
                       {/* Animated ring */}
-                      <div className="absolute inset-0 rounded-full border-2 border-cyan-400 animate-ping opacity-30"></div>
+                      <div className="absolute inset-0 rounded-full border-2 border-cyan-400 animate-ping opacity-30\"></div>
                     </div>
 
                     <h3 className="text-xl font-bold mb-3 text-gray-900 group-hover:text-primary transition-colors">
@@ -97,7 +98,7 @@ export function HowItWorksSection() {
 
           {/* CTA Button */}
           <div className="text-center mt-12">
-            <button className="bg-gradient-to-r from-primary to-cyan-500 text-white font-semibold px-8 py-4 rounded-xl hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 hover:scale-105">
+            <button className="bg-gradient-to-r from-primary to-cyan-500 text-white font-semibold px-8 py-4 rounded-xl hover:shadow-xl hover:shadow-primary/30 transition-all duration-200 hover:scale-105 active:scale-95">
               Start Shopping Now →
             </button>
           </div>

@@ -18,7 +18,7 @@ export function AnnouncementBar() {
 
   return (
     <div
-      className={`bg-[#1a7a8c] text-white h-10 overflow-hidden transition-all duration-500 ${
+      className={`fixed top-0 left-0 right-0 z-[60] bg-[#1a7a8c] text-white h-10 overflow-hidden transition-all duration-500 ${
         isDismissed ? "-translate-y-full" : "translate-y-0"
       }`}
     >

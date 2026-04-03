@@ -95,11 +95,11 @@ export function CategoriesSection() {
               onClick={() => handleCategoryClick(category.category)}
             >
               <CardContent className="p-0">
-                <div className="relative h-48 overflow-hidden">
+                <div className="relative h-36 overflow-hidden">
                   <ImageWithFallback
                     src={category.image}
                     alt={category.name}
-                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-all duration-300"
+                    className="absolute inset-0 w-full h-36 object-cover group-hover:scale-110 transition-all duration-300"
                   />
                   <div className="absolute inset-0 bg-gradient-to-b from-teal-900/60 via-teal-800/40 to-transparent" />
                   <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg group-hover:bg-cyan-500 group-hover:scale-110 transition-all duration-300">

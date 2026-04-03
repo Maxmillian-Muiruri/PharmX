@@ -55,7 +55,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           <ImageWithFallback
             src={product.image}
             alt={product.name}
-            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-48 object-cover rounded-t-lg group-hover:scale-105 transition-transform duration-300"
           />
 
           {discountPercentage > 0 && (

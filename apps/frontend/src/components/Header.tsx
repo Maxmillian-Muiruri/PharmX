@@ -1,11 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import {
-  AUTH_URL_PREFIX,
   CART_URL,
   PRODUCTLIST_URL,
   ROOT_URL_PREFIX,
-  SIGNUP_URL,
 } from "../utils";
 
 type HeaderProps = {
@@ -15,19 +13,46 @@ type HeaderProps = {
 
 const navLinks = [
   { to: ROOT_URL_PREFIX, label: "Home" },
-  { to: AUTH_URL_PREFIX, label: "Sign in" },
-  { to: SIGNUP_URL, label: "Sign up" },
   { to: PRODUCTLIST_URL, label: "Products" },
-  { to: CART_URL, label: "Cart" },
   { to: "/about", label: "About" },
-  { to: ROOT_URL_PREFIX, label: "Contact" },
+  { to: "/contact", label: "Contact" },
+  { to: CART_URL, label: "Cart" },
 ];
 
 export function Header({ cartItemCount = 0, onCartClick }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [atBottom, setAtBottom] = useState(false);
+  const [passedHowItWorks, setPassedHowItWorks] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Check if at bottom
+      const isBottom =
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 300;
+      setAtBottom(isBottom);
+      setScrolled(window.scrollY > 80);
+
+      // Check if passed How It Works section (approximately 40% down the page)
+      const pageHeight = document.documentElement.scrollHeight;
+      const howItWorksPosition = pageHeight * 0.35; // Roughly where HowItWorks appears
+      setPassedHowItWorks(window.scrollY > howItWorksPosition && !isBottom);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
-    <header className="bg-white border-b border-slate-200/70 sticky top-0 z-50 w-full">
+    <header
+      className={`fixed left-0 right-0 z-50 w-full transition-all duration-300 ease-in-out ${
+        atBottom
+          ? "bg-gradient-to-r from-[#1a7a8c] to-[#2d9caf] shadow-lg py-2"
+          : passedHowItWorks
+            ? "bg-gradient-to-r from-[#0f3a4a] to-[#1a5a6e] shadow-lg py-2"
+            : "bg-white py-4 border-b border-slate-200/50 shadow-sm"
+      }`}
+    >
       <div className="w-full px-4 md:px-8">
         <div className="max-w-screen-2xl mx-auto py-4">
           <div className="flex items-center justify-between gap-4">
@@ -36,8 +61,20 @@ export function Header({ cartItemCount = 0, onCartClick }: HeaderProps) {
               className="flex items-center cursor-pointer flex-shrink-0"
               to={ROOT_URL_PREFIX}
             >
-              <span className="text-xl font-medium tracking-tight text-slate-900">
-                <span className="text-xs text-slate-500">PharmX </span>
+              <span
+                className={`text-xl font-medium tracking-tight transition-colors duration-300 ${
+                  atBottom || passedHowItWorks ? "text-white" : "text-slate-900"
+                }`}
+              >
+                <span
+                  className={`text-xs transition-colors duration-300 ${
+                    atBottom || passedHowItWorks
+                      ? "text-white/80"
+                      : "text-slate-500"
+                  }`}
+                >
+                  PharmX{" "}
+                </span>
                 {/* <span className="text-base font-semibold">NOUN</span> */}
               </span>
             </NavLink>
@@ -50,9 +87,13 @@ export function Header({ cartItemCount = 0, onCartClick }: HeaderProps) {
                     <NavLink
                       className={({ isActive }) =>
                         `text-sm transition-colors font-medium ${
-                          isActive
-                            ? "text-slate-900"
-                            : "text-slate-600 hover:text-slate-900"
+                          atBottom || passedHowItWorks
+                            ? isActive
+                              ? "text-white"
+                              : "text-white/70 hover:text-white"
+                            : isActive
+                              ? "text-slate-900"
+                              : "text-slate-600 hover:text-slate-900"
                         }`
                       }
                       to={link.to}
@@ -66,7 +107,13 @@ export function Header({ cartItemCount = 0, onCartClick }: HeaderProps) {
 
             {/* Actions */}
             <div className="flex items-center gap-4 flex-shrink-0">
-              <button className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 transition-colors hidden md:flex">
+              <button
+                className={`flex items-center gap-2 text-sm transition-colors hidden md:flex ${
+                  atBottom || passedHowItWorks
+                    ? "text-white/70 hover:text-white"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
                 <svg
                   className="h-4 w-4"
                   fill="none"
@@ -86,7 +133,11 @@ export function Header({ cartItemCount = 0, onCartClick }: HeaderProps) {
               {onCartClick ? (
                 <button
                   onClick={onCartClick}
-                  className="relative text-slate-600 hover:text-slate-900 transition-colors"
+                  className={`relative transition-colors ${
+                    atBottom || passedHowItWorks
+                      ? "text-white/70 hover:text-white"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
                 >
                   <svg
                     className="h-5 w-5"
@@ -110,7 +161,11 @@ export function Header({ cartItemCount = 0, onCartClick }: HeaderProps) {
               ) : (
                 <NavLink
                   to={CART_URL}
-                  className="relative text-slate-600 hover:text-slate-900 transition-colors"
+                  className={`relative transition-colors ${
+                    atBottom || passedHowItWorks
+                      ? "text-white/70 hover:text-white"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
                 >
                   <svg
                     className="h-5 w-5"
@@ -134,7 +189,11 @@ export function Header({ cartItemCount = 0, onCartClick }: HeaderProps) {
               )}
 
               <button
-                className="lg:hidden text-slate-600 hover:text-slate-900 transition-colors"
+                className={`lg:hidden transition-colors ${
+                  atBottom || passedHowItWorks
+                    ? "text-white/70 hover:text-white"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
               >
                 <svg
@@ -158,7 +217,9 @@ export function Header({ cartItemCount = 0, onCartClick }: HeaderProps) {
           <div className="mt-4 hidden md:block max-w-screen-2xl mx-auto">
             <div className="relative max-w-2xl mx-auto">
               <svg
-                className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400"
+                className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors ${
+                  scrolled ? "text-slate-400" : "text-white/50"
+                }`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -212,9 +273,13 @@ export function Header({ cartItemCount = 0, onCartClick }: HeaderProps) {
                       onClick={() => setIsMenuOpen(false)}
                       className={({ isActive }) =>
                         `block w-full text-left py-2 text-sm transition-colors ${
-                          isActive
-                            ? "text-slate-900 font-medium"
-                            : "text-slate-600 hover:text-slate-900"
+                          atBottom || passedHowItWorks
+                            ? isActive
+                              ? "text-white font-medium"
+                              : "text-white/70 hover:text-white"
+                            : isActive
+                              ? "text-slate-900 font-medium"
+                              : "text-slate-600 hover:text-slate-900"
                         }`
                       }
                       to={link.to}
