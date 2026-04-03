@@ -20,18 +20,28 @@ import { ProductDetail } from "./app/products/product/page";
 import { Cart } from "./app/cart/page";
 import { Footer } from "./components/Footer";
 import { Header } from "./components/Header";
+import { AnnouncementBar } from "./components/AnnouncementBar";
+import { ScrollProgressBar } from "./components/ScrollProgressBar";
+import { ChatBubble } from "./components/ChatBubble";
+import { BackToTop } from "./components/BackToTop";
 
 const AppLayout = () => {
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <Header />
+    <>
+      <ScrollProgressBar />
+      <AnnouncementBar />
+      <div className="min-h-screen bg-slate-50 flex flex-col w-full">
+        <Header />
 
-      <main className="mx-auto w-full max-w-6xl px-5 py-8">
-        <Outlet />
-      </main>
+        <main className="w-full flex-1">
+          <Outlet />
+        </main>
 
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+      <ChatBubble />
+      <BackToTop />
+    </>
   );
 };
 

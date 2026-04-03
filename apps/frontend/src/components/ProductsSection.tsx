@@ -16,6 +16,7 @@ interface Product {
   image: string;
   category: string;
   inStock: boolean;
+  stockStatus?: "in-stock" | "low-stock" | "out-of-stock";
 }
 
 interface ProductsSectionProps {
@@ -35,6 +36,7 @@ const sampleProducts: Product[] = [
       "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
     category: "Pain Relief",
     inStock: true,
+    stockStatus: "in-stock",
   },
   {
     id: 2,
@@ -47,6 +49,7 @@ const sampleProducts: Product[] = [
       "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
     category: "Vitamins",
     inStock: true,
+    stockStatus: "low-stock",
   },
   {
     id: 3,
@@ -60,6 +63,7 @@ const sampleProducts: Product[] = [
       "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
     category: "Health Devices",
     inStock: true,
+    stockStatus: "in-stock",
   },
   {
     id: 4,
@@ -72,6 +76,7 @@ const sampleProducts: Product[] = [
       "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
     category: "Personal Care",
     inStock: true,
+    stockStatus: "in-stock",
   },
   {
     id: 5,
@@ -84,6 +89,7 @@ const sampleProducts: Product[] = [
       "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
     category: "Eye Care",
     inStock: false,
+    stockStatus: "out-of-stock",
   },
   {
     id: 6,
@@ -96,6 +102,7 @@ const sampleProducts: Product[] = [
       "https://images.unsplash.com/photo-1544027993-37dbf4c8da96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
     category: "Baby Care",
     inStock: true,
+    stockStatus: "in-stock",
   },
   {
     id: 7,
@@ -109,6 +116,7 @@ const sampleProducts: Product[] = [
       "https://images.unsplash.com/photo-1556909114-1ba90dd7d1be?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
     category: "Supplements",
     inStock: true,
+    stockStatus: "low-stock",
   },
   {
     id: 8,
@@ -121,6 +129,7 @@ const sampleProducts: Product[] = [
       "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
     category: "Health Devices",
     inStock: true,
+    stockStatus: "in-stock",
   },
 ];
 
@@ -147,7 +156,7 @@ export function ProductsSection({ onAddToCart }: ProductsSectionProps) {
   return (
     <section className="py-24 bg-white">
       <div ref={ref} className={`fade-in-up ${isVisible ? "visible" : ""}`}>
-        <div className="container mx-auto px-4">
+        <div className="max-w-screen-xl mx-auto px-4 md:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
               Featured Products
@@ -170,7 +179,7 @@ export function ProductsSection({ onAddToCart }: ProductsSectionProps) {
             ))}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {filteredProducts.map((product) => (
               <ProductCard
                 key={product.id}

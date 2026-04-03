@@ -31,7 +31,7 @@ export function HowItWorksSection() {
   return (
     <section className="py-24 bg-white relative overflow-hidden">
       <div ref={ref} className={`fade-in-up ${isVisible ? "visible" : ""}`}>
-        <div className="container mx-auto px-4 relative z-10">
+        <div className="max-w-screen-xl mx-auto px-4 md:px-8 relative z-10">
           <div className="text-center mb-20">
             <Badge className="mb-4 bg-primary/10 text-primary hover:bg-primary/20">
               How It Works

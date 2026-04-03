@@ -18,6 +18,7 @@ interface Product {
   category: string;
   inStock: boolean;
   prescription?: boolean;
+  stockStatus?: "in-stock" | "low-stock" | "out-of-stock";
 }
 
 interface ProductCardProps {
@@ -44,7 +45,9 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
 
   return (
     <Card
-      className="group hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer"
+      className={`group hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer ${
+        product.stockStatus === "out-of-stock" ? "opacity-75" : ""
+      }`}
       onClick={handleProductClick}
     >
       <CardContent className="p-0">
@@ -64,6 +67,24 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           {product.prescription && (
             <Badge className="absolute top-2 right-2 bg-blue-500 hover:bg-blue-500">
               Rx
+            </Badge>
+          )}
+
+          {product.stockStatus && (
+            <Badge
+              className={`absolute top-2 right-2 ${
+                product.stockStatus === "in-stock"
+                  ? "bg-green-500 hover:bg-green-500"
+                  : product.stockStatus === "low-stock"
+                    ? "bg-amber-500 hover:bg-amber-500"
+                    : "bg-red-500 hover:bg-red-500"
+              }`}
+            >
+              {product.stockStatus === "in-stock"
+                ? "In Stock"
+                : product.stockStatus === "low-stock"
+                  ? "Only 3 left!"
+                  : "Out of Stock"}
             </Badge>
           )}
 
