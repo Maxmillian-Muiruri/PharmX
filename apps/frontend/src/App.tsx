@@ -1,20 +1,17 @@
 import { useContext } from "react";
-import {
-  Outlet,
-  RouterProvider,
-  createBrowserRouter,
-} from "react-router-dom";
+import { Outlet, RouterProvider, createBrowserRouter } from "react-router-dom";
 import { APPContext } from "./context";
 import { Error404Page, ErrorPage } from "./components/dev/core";
 import {
   AUTH_URL_PREFIX,
   CART_URL,
   PRODUCTLIST_URL,
-  ROOT_URL_PREFIX,
+  // ROOT_URL_PREFIX,
   SIGNUP_URL,
 } from "./utils";
 import { Auth } from "./app/auth/page";
 import { HomePage } from "./app/page";
+import { AboutPage } from "./app/about/page";
 import { Signin } from "./app/auth/signin/page";
 import { Signup } from "./app/auth/signup/page";
 import { ProductList } from "./app/products/page";
@@ -68,6 +65,10 @@ function App() {
         },
 
         // core pages
+        {
+          path: "/about",
+          Component: AboutPage,
+        },
 
         // products
         {
