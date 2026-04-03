@@ -1,5 +1,21 @@
 @import "tailwindcss";
 
+button {
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease,
+    background-color 0.2s ease;
+}
+
+button:hover {
+  filter: brightness(1.08);
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
 @keyframes fadeInUp {
   from {
     opacity: 0;

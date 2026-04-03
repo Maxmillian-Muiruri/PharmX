@@ -35,7 +35,8 @@ export function HeroSection() {
           backgroundImage: "url(https://maxmillin.edgeone.app/2151684858.jpg)",
         }}
       ></div>
-      <div className="absolute inset-0 bg-gradient-to-br from-[#1a7a8c]/90 via-[#1f7a8c]/85 to-[#2d9caf]/90"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-[#1a7a8c]/95 via-[#0d4a5a]/90 to-[#2d9caf]/90"></div>
+      <div className="absolute inset-0 bg-black/25"></div>
 
       {/* Background decorative elements with parallax */}
       <div className="absolute inset-0 opacity-10">
@@ -53,7 +54,7 @@ export function HeroSection() {
         ></div>
       </div>
 
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="max-w-screen-2xl mx-auto px-4 md:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
           <div className="space-y-6 text-white">
@@ -77,7 +78,7 @@ export function HeroSection() {
             <div className="flex flex-col sm:flex-row gap-4 pt-2">
               <Button
                 size="lg"
-                className="bg-white text-primary hover:bg-white/90 text-base px-8 shadow-lg"
+                className="bg-white text-primary hover:bg-white/90 text-base px-8 shadow-lg transition-all duration-200 hover:scale-105 hover:brightness-110 active:scale-95"
                 onClick={() => navigate("/products")}
               >
                 Shop Medicines

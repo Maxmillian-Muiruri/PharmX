@@ -11,6 +11,7 @@ import {
   CreditCard,
   MapPin,
 } from "lucide-react";
+import { useCountUp } from "../hooks/useCountUp";
 
 interface Service {
   icon: React.ElementType;
@@ -94,7 +95,7 @@ const services: Service[] = [
 export function ServicesSection() {
   return (
     <section className="py-28 bg-white">
-      <div className="container mx-auto px-4">
+      <div className="max-w-screen-xl mx-auto px-4 md:px-8">
         <div className="text-center mb-20">
           <Badge className="mb-4 bg-primary/10 text-primary hover:bg-primary/20">
             Our Services
@@ -134,25 +135,43 @@ export function ServicesSection() {
           ))}
         </div>
 
-        <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 border-l-4 border-l-[#2d9caf] p-6">
-            <div className="text-3xl font-bold text-[#1a7a8c] mb-2">50K+</div>
-            <div className="text-sm text-gray-500">Happy Customers</div>
-          </div>
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 border-l-4 border-l-[#2d9caf] p-6">
-            <div className="text-3xl font-bold text-[#1a7a8c] mb-2">10K+</div>
-            <div className="text-sm text-gray-500">Products Available</div>
-          </div>
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 border-l-4 border-l-[#2d9caf] p-6">
-            <div className="text-3xl font-bold text-[#1a7a8c] mb-2">24/7</div>
-            <div className="text-sm text-gray-500">Customer Support</div>
-          </div>
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 border-l-4 border-l-[#2d9caf] p-6">
-            <div className="text-3xl font-bold text-[#1a7a8c] mb-2">99.9%</div>
-            <div className="text-sm text-gray-500">Customer Satisfaction</div>
+        <div className="mt-16 max-w-screen-xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 justify-between">
+            <StatCard endValue={50} suffix="K+" label="Happy Customers" />
+            <StatCard endValue={10} suffix="K+" label="Products Available" />
+            <StatCard endValue={24} suffix="/7" label="Customer Support" />
+            <StatCard
+              endValue={99.9}
+              suffix="%"
+              label="Customer Satisfaction"
+            />
           </div>
         </div>
       </div>
     </section>
+  );
+}
+
+function StatCard({
+  endValue,
+  suffix,
+  label,
+}: {
+  endValue: number;
+  suffix: string;
+  label: string;
+}) {
+  const [ref, displayValue] = useCountUp(endValue, 2000, true, suffix);
+
+  return (
+    <div
+      ref={ref}
+      className="bg-white rounded-2xl shadow-sm border border-gray-100 border-l-4 border-l-[#2d9caf] p-6"
+    >
+      <div className="text-3xl font-bold text-[#1a7a8c] mb-2">
+        {displayValue}
+      </div>
+      <div className="text-sm text-gray-500">{label}</div>
+    </div>
   );
 }

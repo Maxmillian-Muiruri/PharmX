@@ -3,6 +3,7 @@ import { Button } from "./ui/button";
 import { Percent, Gift, Clock, TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useFadeInOnScroll } from "../hooks/useFadeInOnScroll";
+import { CountdownTimer } from "./CountdownTimer";
 
 export function PromotionsSection() {
   const navigate = useNavigate();
@@ -24,8 +25,8 @@ export function PromotionsSection() {
           </p>
         </div>
 
-        <div className="max-w-7xl mx-auto px-3 mb-8">
-          <div className="lg:col-span-2 mx-4 md:mx-6 relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-[#2d9caf] to-[#1a7a8c] p-8 md:p-12 text-white shadow-xl">
+        <div className="max-w-screen-xl mx-auto px-8 mb-8">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-[#2d9caf] to-[#1a7a8c] p-8 md:p-12 text-white shadow-xl">
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
             <div className="absolute bottom-0 left-0 w-96 h-96 bg-cyan-400/10 rounded-full blur-3xl"></div>
 
@@ -68,7 +69,7 @@ export function PromotionsSection() {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-screen-xl mx-auto px-4 md:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-cyan-500 to-cyan-600 p-8 text-white shadow-lg hover:shadow-xl transition-shadow">
               <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-2xl"></div>
@@ -88,9 +89,10 @@ export function PromotionsSection() {
                 <p className="text-white/90 mb-6">
                   Selected vitamins & supplements. Hurry, while stocks last!
                 </p>
+                <CountdownTimer />
                 <Button
                   variant="outline"
-                  className="bg-white/10 border-white/30 text-white hover:bg-white/20 backdrop-blur-sm"
+                  className="bg-white/10 border-white/30 text-white hover:bg-white/20 backdrop-blur-sm mt-6"
                   onClick={() => navigate("/products")}
                 >
                   View Deals
@@ -126,7 +128,7 @@ export function PromotionsSection() {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-screen-xl mx-auto px-4 md:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="flex items-center gap-4 p-4 bg-primary/5 rounded-xl border border-primary/10">
               <div className="bg-primary/10 p-3 rounded-lg">

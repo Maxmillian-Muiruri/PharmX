@@ -10,7 +10,7 @@ export function TrustBar() {
 
   return (
     <section className="py-6 bg-white border-t border-gray-100 border-b border-gray-100">
-      <div className="container mx-auto px-4">
+      <div className="max-w-screen-xl mx-auto px-4 md:px-8">
         <div className="text-center mb-6">
           <p className="text-xs uppercase tracking-widest text-gray-500 font-medium">
             Trusted Partners & Certifications

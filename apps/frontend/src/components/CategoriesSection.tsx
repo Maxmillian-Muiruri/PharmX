@@ -1,7 +1,6 @@
 import { Card, CardContent } from "./ui/card";
 import { ImageWithFallback } from "./fallbackImg/ImageWithFallback";
 import { useNavigate } from "react-router-dom";
-import { useFadeInOnScroll } from "../hooks/useFadeInOnScroll";
 
 interface Category {
   id: number;
@@ -71,7 +70,6 @@ const categories: Category[] = [
 
 export function CategoriesSection() {
   const navigate = useNavigate();
-  const [ref, isVisible] = useFadeInOnScroll();
 
   const handleCategoryClick = (categorySlug: string) => {
     navigate("/products", { state: { category: categorySlug } });
@@ -79,52 +77,50 @@ export function CategoriesSection() {
 
   return (
     <section className="py-24 bg-gray-50">
-      <div ref={ref} className={`fade-in-up ${isVisible ? "visible" : ""}`}>
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-              Shop by Category
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Find everything you need for your health and wellness journey
-            </p>
-          </div>
+      <div className="max-w-screen-xl mx-auto px-4 md:px-8">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+            Shop by Category
+          </h2>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Find everything you need for your health and wellness journey
+          </p>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {categories.map((category) => (
-              <Card
-                key={category.id}
-                className="group cursor-pointer hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden border-2 border-cyan-200 hover:border-cyan-400 bg-gradient-to-br from-white to-cyan-50"
-                onClick={() => handleCategoryClick(category.category)}
-              >
-                <CardContent className="p-0">
-                  <div className="relative h-48 overflow-hidden">
-                    <ImageWithFallback
-                      src={category.image}
-                      alt={category.name}
-                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-all duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-b from-teal-900/60 via-teal-800/40 to-transparent" />
-                    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg group-hover:bg-cyan-500 group-hover:scale-110 transition-all duration-300">
-                      <span className="text-2xl group-hover:scale-110 inline-block transition-transform duration-300">
-                        {category.icon}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="p-6 bg-gradient-to-br from-white via-cyan-50/50 to-white">
-                    <h3 className="text-xl mb-2 text-gray-900 group-hover:text-primary transition-colors duration-300">
-                      {category.name}
-                    </h3>
-                    <p className="text-gray-600 mb-4">{category.description}</p>
-                    <span className="inline-block text-white bg-primary hover:bg-primary/90 group-hover:bg-cyan-600 px-4 py-2 rounded-lg font-medium transition-all duration-300 shadow-md group-hover:shadow-lg">
-                      Shop Now →
+        <div className="grid grid-cols-3 gap-6">
+          {categories.map((category) => (
+            <Card
+              key={category.id}
+              className="group cursor-pointer hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden border-2 border-cyan-200 hover:border-cyan-400 bg-gradient-to-br from-white to-cyan-50"
+              onClick={() => handleCategoryClick(category.category)}
+            >
+              <CardContent className="p-0">
+                <div className="relative h-36 overflow-hidden">
+                  <ImageWithFallback
+                    src={category.image}
+                    alt={category.name}
+                    className="absolute inset-0 w-full h-36 object-cover group-hover:scale-110 transition-all duration-300"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-b from-teal-900/60 via-teal-800/40 to-transparent" />
+                  <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg group-hover:bg-cyan-500 group-hover:scale-110 transition-all duration-300">
+                    <span className="text-2xl group-hover:scale-110 inline-block transition-transform duration-300">
+                      {category.icon}
                     </span>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                </div>
+
+                <div className="p-6 bg-gradient-to-br from-white via-cyan-50/50 to-white">
+                  <h3 className="text-xl mb-2 text-gray-900 group-hover:text-primary transition-colors duration-300">
+                    {category.name}
+                  </h3>
+                  <p className="text-gray-600 mb-4">{category.description}</p>
+                  <span className="inline-block text-white bg-primary hover:bg-primary/90 group-hover:bg-cyan-600 px-4 py-2 rounded-lg font-medium transition-all duration-300 shadow-md group-hover:shadow-lg">
+                    Shop Now →
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     </section>
