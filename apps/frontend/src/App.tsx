@@ -1,20 +1,17 @@
 import { useContext } from "react";
-import {
-  Outlet,
-  RouterProvider,
-  createBrowserRouter,
-} from "react-router-dom";
+import { Outlet, RouterProvider, createBrowserRouter } from "react-router-dom";
 import { APPContext } from "./context";
 import { Error404Page, ErrorPage } from "./components/dev/core";
 import {
   AUTH_URL_PREFIX,
   CART_URL,
   PRODUCTLIST_URL,
-  ROOT_URL_PREFIX,
+  // ROOT_URL_PREFIX,
   SIGNUP_URL,
 } from "./utils";
 import { Auth } from "./app/auth/page";
 import { HomePage } from "./app/page";
+import { AboutPage } from "./app/about/page";
 import { Signin } from "./app/auth/signin/page";
 import { Signup } from "./app/auth/signup/page";
 import { ProductList } from "./app/products/page";
@@ -23,18 +20,28 @@ import { ProductDetail } from "./app/products/product/page";
 import { Cart } from "./app/cart/page";
 import { Footer } from "./components/Footer";
 import { Header } from "./components/Header";
+import { AnnouncementBar } from "./components/AnnouncementBar";
+import { ScrollProgressBar } from "./components/ScrollProgressBar";
+import { ChatBubble } from "./components/ChatBubble";
+import { BackToTop } from "./components/BackToTop";
 
 const AppLayout = () => {
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <Header />
+    <>
+      <ScrollProgressBar />
+      <AnnouncementBar />
+      <div className="min-h-screen bg-slate-50 flex flex-col w-full">
+        <Header />
 
-      <main className="mx-auto w-full max-w-6xl px-5 py-8">
-        <Outlet />
-      </main>
+        <main className="w-full flex-1 pt-16 md:pt-20">
+          <Outlet />
+        </main>
 
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+      <ChatBubble />
+      <BackToTop />
+    </>
   );
 };
 
@@ -68,6 +75,10 @@ function App() {
         },
 
         // core pages
+        {
+          path: "/about",
+          Component: AboutPage,
+        },
 
         // products
         {
