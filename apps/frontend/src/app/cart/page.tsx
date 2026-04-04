@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import type { JSX } from 'react';
+import { useCart } from '../../context/CartContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type StockStatus = 'in_stock' | 'low_stock' | 'out_of_stock';
 type ImageType = 'capsule' | 'tablet' | 'syrup' | 'supplement';
 
-interface CartItem {
+export interface CartItem {
   id: string;
   name: string;
   category: string;
@@ -18,6 +19,7 @@ interface CartItem {
   stockStatus: StockStatus;
   stockCount?: number;
   imageType: ImageType;
+  image?: string;
 }
 
 interface SuggestedItem {
@@ -36,8 +38,6 @@ const VALID_PROMO_CODES: Record<string, { discount: number; message: string }> =
   PHARMA10: { discount: 0.1, message: '✓ 10% discount applied!' },
   HEALTH20: { discount: 0.2, message: '✓ 20% discount applied!' },
 };
-
-const INITIAL_CART_ITEMS: CartItem[] = [];
 
 const SUGGESTED_ITEMS: SuggestedItem[] = [];
 
@@ -133,10 +133,18 @@ function CartItemCard({
     >
       {/* Image */}
       <div style={{ position: 'relative', width: 72, height: 72, minWidth: 72, borderRadius: 8, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        {item.image ? (
+          <img
+            src={item.image}
+            alt={item.name}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        ) : (
+          <MedicineIcon type={item.imageType} />
+        )}
         {item.requiresPrescription && (
           <span style={{ position: 'absolute', top: 4, left: 4, background: '#0d4f5c', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 4, padding: '1px 5px', letterSpacing: '.5px', zIndex: 1 }}>Rx</span>
         )}
-        <MedicineIcon type={item.imageType} />
       </div>
 
       {/* Body */}
@@ -329,40 +337,107 @@ function EmptyCart() {
         Browse Products
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
       </a>
+    </div>);
+}
+
+function CheckoutModal({
+  open,
+  onClose,
+  onConfirm,
+  items,
+  subtotal,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  items: CartItem[];
+  subtotal: number;
+}) {
+  if (!open) return null;
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+      <div style={{ width: 'min(700px,100%)', background: '#fff', borderRadius: 20, overflow: 'hidden', boxShadow: '0 40px 80px rgba(0,0,0,0.2)' }}>
+        <div style={{ padding: '1.5rem', borderBottom: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+            <div>
+              <h2 style={{ margin: 0, fontSize: 22, color: '#0d4f5c' }}>Checkout Payment</h2>
+              <p style={{ margin: '8px 0 0', color: '#64748b', fontSize: 13 }}>Review your order and select a payment method.</p>
+            </div>
+            <button onClick={onClose} style={{ border: 'none', background: 'none', color: '#64748b', cursor: 'pointer', fontSize: 24, lineHeight: 1 }}>&times;</button>
+          </div>
+        </div>
+
+        <div style={{ padding: '1.5rem', display: 'grid', gap: 18 }}>
+          <div style={{ display: 'grid', gap: 10 }}>
+            <h3 style={{ margin: 0, fontSize: 16, color: '#0d4f5c' }}>Order Summary</h3>
+            {items.map(item => (
+              <div key={item.id} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>
+                <div style={{ width: 50, height: 50, borderRadius: 12, overflow: 'hidden', background: '#f8fafc', display: 'grid', placeItems: 'center' }}>
+                  {item.image ? <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <MedicineIcon type={item.imageType} />}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: '#12251e' }}>{item.name}</div>
+                  <div style={{ fontSize: 12, color: '#64748b' }}>{item.quantity} × KSh {item.unitPrice.toFixed(2)}</div>
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#0d4f5c' }}>KSh {(item.unitPrice * item.quantity).toFixed(2)}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, color: '#0d4f5c' }}>
+            <span>Subtotal</span>
+            <span>KSh {subtotal.toFixed(2)}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, color: '#64748b' }}>
+            <span>Delivery fee</span>
+            <span>KSh 150</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 16, fontWeight: 700, color: '#0d4f5c' }}>
+            <span>Total</span>
+            <span>KSh {(subtotal + 150).toFixed(2)}</span>
+          </div>
+
+          <div style={{ display: 'grid', gap: 8 }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#0d4f5c' }}>Payment method</span>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
+              {['M-Pesa', 'Card', 'Cash on Delivery'].map(method => (
+                <button key={method} style={{ padding: '12px 10px', borderRadius: 12, border: '1px solid #e2e8f0', background: '#f8fafc', color: '#0d4f5c', fontWeight: 600 }}>{method}</button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 10 }}>
+            <button onClick={onClose} style={{ padding: '12px 18px', borderRadius: 12, border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', cursor: 'pointer' }}>Cancel</button>
+            <button onClick={onConfirm} style={{ padding: '12px 18px', borderRadius: 12, border: 'none', background: '#0d4f5c', color: '#fff', cursor: 'pointer' }}>Confirm Payment</button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
 
-// ─── Cart (Main Export) ───────────────────────────────────────────────────────
-
 export const Cart = () => {
-  const [items, setItems] = useState<CartItem[]>(INITIAL_CART_ITEMS);
+  const { items, updateQuantity, removeItem, clearCart, getSubtotal } = useCart();
   const [rxUploaded, setRxUploaded] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+
+  console.log('Cart component rendering, items:', items);
 
   const hasRxItems = items.some(item => item.requiresPrescription);
-  const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+  const subtotal = getSubtotal();
 
   const handleQuantityChange = (id: string, quantity: number) => {
-    setItems(prev => prev.map(item => item.id === id ? { ...item, quantity } : item));
+    updateQuantity(id, quantity);
   };
 
   const handleRemove = (id: string) => {
-    setItems(prev => prev.filter(item => item.id !== id));
+    removeItem(id);
   };
 
   const handleAddSuggested = (suggested: SuggestedItem) => {
-    setItems(prev => [...prev, {
-      id: suggested.id,
-      name: suggested.name,
-      category: 'General',
-      brand: 'PharmX Select',
-      packSize: '1 pack',
-      unitPrice: suggested.price,
-      quantity: 1,
-      requiresPrescription: false,
-      stockStatus: 'in_stock',
-      imageType: suggested.imageType,
-    }]);
+    // This will be handled by the cart context when called from SuggestedItems
+    console.log('Add suggested item:', suggested);
   };
 
   const handleCheckout = () => {
@@ -370,8 +445,17 @@ export const Cart = () => {
       alert('Please upload your prescription before proceeding to checkout.');
       return;
     }
-    // navigate('/checkout') — wire your router here
-    console.log('Checkout with items:', items);
+
+    setCheckoutOpen(true);
+  };
+
+  const handleConfirmPayment = () => {
+    alert('Checkout payment simulated. Thank you for your order!');
+    setCheckoutOpen(false);
+  };
+
+  const handleCloseModal = () => {
+    setCheckoutOpen(false);
   };
 
   if (items.length === 0) return <EmptyCart />;
@@ -389,7 +473,7 @@ export const Cart = () => {
             {items.length} item{items.length !== 1 ? 's' : ''}
           </span>
         </h1>
-        <button onClick={() => setItems([])} style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: '6px 14px', fontSize: 12, color: '#64748b', cursor: 'pointer', background: 'none', fontFamily: 'inherit' }}>
+        <button onClick={() => clearCart()} style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: '6px 14px', fontSize: 12, color: '#64748b', cursor: 'pointer', background: 'none', fontFamily: 'inherit' }}>
           Clear all
         </button>
       </div>
@@ -430,6 +514,13 @@ export const Cart = () => {
         {/* Right */}
         <OrderSummary subtotal={subtotal} itemCount={items.length} onCheckout={handleCheckout} />
       </div>
+      <CheckoutModal
+        open={checkoutOpen}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirmPayment}
+        items={items}
+        subtotal={subtotal}
+      />
     </div>
   );
 };

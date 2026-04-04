@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useParams, useNavigate, NavLink } from "react-router-dom";
 import { CART_URL, PRODUCTLIST_URL } from "../../../utils";
+import { useCart } from '../../../context/CartContext';
+import { useToast } from '../../../context/ToastContext';
 
 // ── Mock product data (replace with real API call later) ──────────────────────
 const MOCK_PRODUCTS = [
@@ -155,6 +157,8 @@ function TabPanel({
 export const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { addItem } = useCart();
+  const { addToast } = useToast();
 
   const product = getProduct(id ?? "");
   const [quantity, setQuantity] = useState(1);
@@ -188,6 +192,43 @@ export const ProductDetail = () => {
     : null;
 
   const handleAddToCart = () => {
+    console.log('handleAddToCart called');
+    
+    // Determine stock status based on availability
+    const stockStatus = product.availability === "Out of Stock" ? "out_of_stock" : 
+                        product.availability === "Low Stock" ? "low_stock" : "in_stock";
+    
+    // Determine image type based on tags
+    let imageType: "capsule" | "tablet" | "syrup" | "supplement" = "tablet";
+    if (product.tags.includes("Tablet")) imageType = "tablet";
+    else if (product.tags.includes("Supplement")) imageType = "supplement";
+    else if (product.tags.includes("Effervescent")) imageType = "syrup";
+    else imageType = "capsule";
+
+    console.log('Adding item to cart:', { name: product.name, quantity, stockStatus });
+
+    addItem({
+      name: product.name,
+      category: product.category,
+      brand: product.brand,
+      packSize: "1 pack", // Default pack size
+      unitPrice: product.price,
+      quantity: quantity,
+      requiresPrescription: false, // Default to false, can be updated based on product data
+      stockStatus: stockStatus,
+      stockCount: product.availabilityCount,
+      imageType: imageType,
+      image: product.image || undefined,
+    });
+
+    // Show success toast
+    console.log('Calling addToast');
+    addToast({
+      type: 'success',
+      message: `${quantity} × ${product.name} added to cart!`,
+      duration: 3000
+    });
+
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 2000);
   };
