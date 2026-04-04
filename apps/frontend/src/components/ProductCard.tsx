@@ -50,10 +50,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
         </div>
         <div className="flex items-center justify-between">
           <span className="text-lg font-bold text-green-600">
-            ${product.price.toFixed(2)}
+            KES{product.price.toFixed(2)}
             {product.originalPrice && (
               <span className="text-sm text-gray-500 line-through ml-2">
-                ${product.originalPrice.toFixed(2)}
+                KES{product.originalPrice.toFixed(2)}
               </span>
             )}
           </span>
