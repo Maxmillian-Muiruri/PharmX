@@ -1,12 +1,22 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { Product } from '../types';
 
 interface ProductCardProps {
   product: Product;
-  onAddToCart: (product: Product) => void;
+  onAddToCart?: (product: Product) => void;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
+  const navigate = useNavigate();
+
+  const handleProductClick = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('button')) {
+      return;
+    }
+    navigate(`/products/${product.id}`);
+  };
+
   // Render star ratings
   const renderStars = (rating: number) => {
   const fullStars = Math.floor(rating);
@@ -22,7 +32,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
   );
 };
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-md p-4 max-w-sm">
+    <div 
+      className="bg-white border border-gray-200 rounded-lg shadow-md p-4 max-w-sm cursor-pointer hover:shadow-lg transition-shadow"
+      onClick={handleProductClick}
+    >
       {/* Product Image with Discount Badge */}
       <div className="relative mb-4">
         <img
@@ -59,7 +72,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
           </span>
         </div>
         <button
-          onClick={() => onAddToCart(product)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onAddToCart?.(product);
+          }}
           className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition"
           disabled={product.stock === false}
         >
