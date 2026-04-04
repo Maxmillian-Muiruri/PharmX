@@ -42,7 +42,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
         <h3 className="text-lg font-semibold text-gray-800">{product.name}</h3>
         <p className="text-sm text-gray-600">{product.category}</p>
         <p className="text-sm text-gray-600">{product.use}</p>
+        <div className="flex items-center justify-between">
         {renderStars(product.rating)}
+        <span className={`px-3 py-1 text-xs font-bold rounded text-white ${product.stock === false ? 'bg-red-500' : 'bg-green-500'}`}>
+            {product.stock === false ? 'Out of Stock' : 'In Stock'}
+        </span>
+        </div>
         <div className="flex items-center justify-between">
           <span className="text-lg font-bold text-green-600">
             ${product.price.toFixed(2)}
