@@ -19,3 +19,11 @@ export const ORDERS_URL = "/orders";
 export const ORDERDETAIL_URL = "/orders/:id";
 
 export const CART_URL = "/cart";
+
+export const navLinks = [
+  { to: ROOT_URL_PREFIX, label: "Home" },
+  { to: PRODUCTLIST_URL, label: "Products" },
+  { to: "/about", label: "About" },
+  { to: "/contact", label: "Contact" },
+  { to: CART_URL, label: "Cart" },
+];

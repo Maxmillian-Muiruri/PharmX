@@ -1,19 +1,11 @@
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
-import { CART_URL, PRODUCTLIST_URL, ROOT_URL_PREFIX } from "../utils";
+import { CART_URL, ROOT_URL_PREFIX, navLinks } from "../utils";
 
 type HeaderProps = {
   cartItemCount?: number;
   onCartClick?: () => void;
 };
-
-const navLinks = [
-  { to: ROOT_URL_PREFIX, label: "Home" },
-  { to: PRODUCTLIST_URL, label: "Products" },
-  { to: "/about", label: "About" },
-  { to: "/contact", label: "Contact" },
-  { to: CART_URL, label: "Cart" },
-];
 
 export function Header({ cartItemCount = 0, onCartClick }: HeaderProps) {
   const [passedHowItWorks, setPassedHowItWorks] = useState(false);
