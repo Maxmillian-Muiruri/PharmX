@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { Outlet, RouterProvider, createBrowserRouter } from "react-router-dom";
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { APPContext } from "./context";
 import { AppLayout, Error404Page, ErrorPage } from "./components/dev/core";
 import {
@@ -12,6 +12,7 @@ import {
 import { Auth } from "./app/auth/page";
 import { HomePage } from "./app/page";
 import { AboutPage } from "./app/about/page";
+import { ContactPage } from "./app/contact/page";
 import { Signin } from "./app/auth/signin/page";
 import { Signup } from "./app/auth/signup/page";
 import { ProductList } from "./app/products/page";
@@ -76,6 +77,12 @@ function App() {
         {
           path: CART_URL,
           Component: Cart,
+        },
+
+        // contact
+        {
+          path: "/contact",
+          Component: ContactPage,
         },
 
         // Root level 404

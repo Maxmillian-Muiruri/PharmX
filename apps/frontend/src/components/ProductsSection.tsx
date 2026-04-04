@@ -4,23 +4,10 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { useNavigate } from "react-router-dom";
 import { useFadeInOnScroll } from "../hooks/useFadeInOnScroll";
-
-interface Product {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  originalPrice?: number;
-  rating: number;
-  reviewCount: number;
-  image: string;
-  category: string;
-  inStock: boolean;
-  stockStatus?: "in-stock" | "low-stock" | "out-of-stock";
-}
+import type { Product } from "../types";
 
 interface ProductsSectionProps {
-  onAddToCart?: (product: Product, quantity?: number) => void;
+  onAddToCart?: (product: Product) => void;
 }
 
 const sampleProducts: Product[] = [

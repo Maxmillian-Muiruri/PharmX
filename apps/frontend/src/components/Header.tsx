@@ -11,7 +11,6 @@ type HeaderProps = {
 
 export function Header({ cartItemCount, onCartClick }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
-  const [scrolled, setScrolled] = useState(false);
   const [atBottom, setAtBottom] = useState(false);
   const [passedHowItWorks, setPassedHowItWorks] = useState(false);
   const { getItemCount } = useCart();
@@ -26,7 +25,6 @@ export function Header({ cartItemCount, onCartClick }: HeaderProps) {
         window.innerHeight + window.scrollY >=
         document.documentElement.scrollHeight - 300;
       setAtBottom(isBottom);
-      setScrolled(window.scrollY > 80);
 
       // Check if passed How It Works section (approximately 40% down the page)
       const pageHeight = document.documentElement.scrollHeight;
