@@ -10,6 +10,8 @@ import { Header } from "../Header";
 import { Footer } from "../Footer";
 import { ChatBubble } from "../ChatBubble";
 import { BackToTop } from "../BackToTop";
+import { SearchIcon } from "lucide-react";
+import React from "react";
 
 export const LayoutWrapper = ({ children }: Readonly<TNodeChildrentType>) => {
   const queryClient = new QueryClient();
@@ -60,7 +62,7 @@ export const AppLayout = () => {
     <RootLayout
       {...{
         children: (
-          <>
+          <React.Fragment>
             <ScrollProgressBar />
             <AnnouncementBar />
             <div className="min-h-screen bg-slate-50 flex flex-col w-full">
@@ -75,9 +77,28 @@ export const AppLayout = () => {
 
             <ChatBubble />
             <BackToTop />
-          </>
+          </React.Fragment>
         ),
       }}
     />
+  );
+};
+
+export const ReusableSearchBar = () => {
+  return (
+    <div className="relative max-w-full lg:max-w-lg mx-auto">
+      <SearchIcon
+        className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors text-slate-400`}
+      />
+
+      <input
+        {...{
+          className:
+            "w-full rounded-lg border bg-primary shadow-sm border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-400 focus:outline-none",
+          placeholder: "Search medicines, health products...",
+          type: "search",
+        }}
+      />
+    </div>
   );
 };
