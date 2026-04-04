@@ -47,25 +47,17 @@ export function Header({ cartItemCount = 0, onCartClick }: HeaderProps) {
           <div className="flex items-center justify-between gap-4">
             {/* Logo */}
             <NavLink
-              className="flex items-center cursor-pointer"
+              className="flex items-center cursor-pointer shrink-0"
               to={ROOT_URL_PREFIX}
             >
-              <span
-                className={`text-xl font-medium tracking-tight transition-colors duration-300 ${
-                  atBottom || passedHowItWorks ? "text-white" : "text-slate-900"
-                }`}
-              >
-                <span
-                  className={`text-xs transition-colors duration-300 ${
-                    atBottom || passedHowItWorks
-                      ? "text-white/80"
-                      : "text-slate-500"
-                  }`}
-                >
-                  PharmX{" "}
-                </span>
-                {/* <span className="text-base font-semibold">NOUN</span> */}
-              </span>
+              <img
+                src="/logo.jpg"
+                alt="PharmX"
+                className="h-8 w-auto object-contain md:h-9"
+                width={180}
+                height={48}
+                decoding="async"
+              />
             </NavLink>
 
             {/* Navigation - Desktop */}
@@ -74,17 +66,21 @@ export function Header({ cartItemCount = 0, onCartClick }: HeaderProps) {
                 {navLinks.map((link) => (
                   <li key={link.to}>
                     <NavLink
-                      className={({ isActive }) =>
-                        `text-sm transition-colors font-medium ${
-                          atBottom || passedHowItWorks
-                            ? isActive
-                              ? "text-white"
-                              : "text-white/70 hover:text-white"
-                            : isActive
-                              ? "text-slate-900"
-                              : "text-slate-600 hover:text-slate-900"
-                        }`
-                      }
+                      className={({ isActive }) => {
+                        const onTealHeader = atBottom || passedHowItWorks;
+                        const line =
+                          "relative inline-flex pb-1.5 text-sm font-medium transition-colors after:pointer-events-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:rounded-full after:origin-center after:scale-x-0 after:transition-transform after:duration-300 after:ease-out hover:after:scale-x-100 " +
+                          (onTealHeader ? "after:bg-cyan-200 " : "after:bg-primary ");
+                        const activeLine = isActive ? "after:scale-x-100 " : "";
+                        const colors = onTealHeader
+                          ? isActive
+                            ? "text-white"
+                            : "text-white/70 hover:text-white"
+                          : isActive
+                            ? "text-slate-900"
+                            : "text-slate-600 hover:text-slate-900";
+                        return line + activeLine + colors;
+                      }}
                       to={link.to}
                     >
                       {link.label}
