@@ -54,8 +54,6 @@ export function Header({ cartItemCount = 0, onCartClick }: HeaderProps) {
                 src="/logo.jpg"
                 alt="PharmX"
                 className="h-8 w-auto object-contain md:h-9"
-                width={180}
-                height={48}
                 decoding="async"
               />
             </NavLink>
