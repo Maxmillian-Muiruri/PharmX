@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { CART_URL, ROOT_URL_PREFIX, navLinks } from "../utils";
+import { useCart } from "../context/CartContext";
 import { ReusableSearchBar } from "./dev/core";
 
 type HeaderProps = {
@@ -8,11 +9,15 @@ type HeaderProps = {
   onCartClick?: () => void;
 };
 
-export function Header({ cartItemCount = 0, onCartClick }: HeaderProps) {
-  const [passedHowItWorks, setPassedHowItWorks] = useState(false);
+export function Header({ cartItemCount, onCartClick }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
-  const [atBottom, setAtBottom] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [atBottom, setAtBottom] = useState(false);
+  const [passedHowItWorks, setPassedHowItWorks] = useState(false);
+  const { getItemCount } = useCart();
+
+  // Use context value if props not provided
+  const actualCartItemCount = cartItemCount ?? getItemCount();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -68,7 +73,9 @@ export function Header({ cartItemCount = 0, onCartClick }: HeaderProps) {
                         const onTealHeader = atBottom || passedHowItWorks;
                         const line =
                           "relative inline-flex pb-1.5 text-sm font-medium transition-colors after:pointer-events-none after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:rounded-full after:origin-center after:scale-x-0 after:transition-transform after:duration-300 after:ease-out hover:after:scale-x-100 " +
-                          (onTealHeader ? "after:bg-cyan-200 " : "after:bg-primary ");
+                          (onTealHeader
+                            ? "after:bg-cyan-200 "
+                            : "after:bg-primary ");
                         const activeLine = isActive ? "after:scale-x-100 " : "";
                         const colors = onTealHeader
                           ? isActive
@@ -135,9 +142,9 @@ export function Header({ cartItemCount = 0, onCartClick }: HeaderProps) {
                       d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 8a2 2 0 100-4 2 2 0 000 4z"
                     />
                   </svg>
-                  {cartItemCount > 0 && (
+                  {actualCartItemCount > 0 && (
                     <span className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
-                      {cartItemCount}
+                      {actualCartItemCount}
                     </span>
                   )}
                 </button>
@@ -163,9 +170,9 @@ export function Header({ cartItemCount = 0, onCartClick }: HeaderProps) {
                       d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 8a2 2 0 100-4 2 2 0 000 4z"
                     />
                   </svg>
-                  {cartItemCount > 0 && (
+                  {actualCartItemCount > 0 && (
                     <span className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
-                      {cartItemCount}
+                      {actualCartItemCount}
                     </span>
                   )}
                 </NavLink>

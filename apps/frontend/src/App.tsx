@@ -18,6 +18,8 @@ import { ProductList } from "./app/products/page";
 import ProductsListLayout from "./app/products/layout";
 import { ProductDetail } from "./app/products/product/page";
 import { Cart } from "./app/cart/page";
+import { ToastProvider } from "./context/ToastContext";
+import { CartProvider } from "./context/CartContext";
 
 function App() {
   const {} = useContext(APPContext);
@@ -85,7 +87,13 @@ function App() {
     },
   ]);
 
-  return <RouterProvider router={router} />;
+  return (
+    <ToastProvider>
+      <CartProvider>
+        <RouterProvider router={router} />
+      </CartProvider>
+    </ToastProvider>
+  );
 }
 
 export default App;
