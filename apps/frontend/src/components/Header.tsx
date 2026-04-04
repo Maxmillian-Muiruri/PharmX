@@ -1,10 +1,6 @@
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
-import {
-  CART_URL,
-  PRODUCTLIST_URL,
-  ROOT_URL_PREFIX,
-} from "../utils";
+import { CART_URL, PRODUCTLIST_URL, ROOT_URL_PREFIX } from "../utils";
 
 type HeaderProps = {
   cartItemCount?: number;
@@ -20,10 +16,10 @@ const navLinks = [
 ];
 
 export function Header({ cartItemCount = 0, onCartClick }: HeaderProps) {
-  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
-  const [scrolled, setScrolled] = useState(false);
-  const [atBottom, setAtBottom] = useState(false);
   const [passedHowItWorks, setPassedHowItWorks] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const [atBottom, setAtBottom] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -45,7 +41,7 @@ export function Header({ cartItemCount = 0, onCartClick }: HeaderProps) {
 
   return (
     <header
-      className={`fixed left-0 right-0 z-50 w-full transition-all duration-300 ease-in-out ${
+      className={`sticky top-0 left-0 z-50 w-full transition-all duration-300 ease-in-out ${
         atBottom
           ? "bg-gradient-to-r from-[#1a7a8c] to-[#2d9caf] shadow-lg py-2"
           : passedHowItWorks
@@ -58,7 +54,7 @@ export function Header({ cartItemCount = 0, onCartClick }: HeaderProps) {
           <div className="flex items-center justify-between gap-4">
             {/* Logo */}
             <NavLink
-              className="flex items-center cursor-pointer flex-shrink-0"
+              className="flex items-center cursor-pointer"
               to={ROOT_URL_PREFIX}
             >
               <span
@@ -108,7 +104,7 @@ export function Header({ cartItemCount = 0, onCartClick }: HeaderProps) {
             {/* Actions */}
             <div className="flex items-center gap-4 flex-shrink-0">
               <button
-                className={`flex items-center gap-2 text-sm transition-colors hidden md:flex ${
+                className={`items-center gap-2 text-sm transition-colors hidden md:flex ${
                   atBottom || passedHowItWorks
                     ? "text-white/70 hover:text-white"
                     : "text-slate-600 hover:text-slate-900"

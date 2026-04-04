@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { Outlet, RouterProvider, createBrowserRouter } from "react-router-dom";
 import { APPContext } from "./context";
-import { Error404Page, ErrorPage } from "./components/dev/core";
+import { AppLayout, Error404Page, ErrorPage } from "./components/dev/core";
 import {
   AUTH_URL_PREFIX,
   CART_URL,
@@ -18,32 +18,6 @@ import { ProductList } from "./app/products/page";
 import ProductsListLayout from "./app/products/layout";
 import { ProductDetail } from "./app/products/product/page";
 import { Cart } from "./app/cart/page";
-import { Footer } from "./components/Footer";
-import { Header } from "./components/Header";
-import { AnnouncementBar } from "./components/AnnouncementBar";
-import { ScrollProgressBar } from "./components/ScrollProgressBar";
-import { ChatBubble } from "./components/ChatBubble";
-import { BackToTop } from "./components/BackToTop";
-
-const AppLayout = () => {
-  return (
-    <>
-      <ScrollProgressBar />
-      <AnnouncementBar />
-      <div className="min-h-screen bg-slate-50 flex flex-col w-full">
-        <Header />
-
-        <main className="w-full flex-1 pt-16 md:pt-20">
-          <Outlet />
-        </main>
-
-        <Footer />
-      </div>
-      <ChatBubble />
-      <BackToTop />
-    </>
-  );
-};
 
 function App() {
   const {} = useContext(APPContext);

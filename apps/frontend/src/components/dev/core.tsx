@@ -2,7 +2,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { TNodeChildrentType } from "../../types";
 import { APPContext } from "../../context";
 import { ROOT_URL_PREFIX } from "../../utils";
-import { useNavigate } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
+import RootLayout from "../../app/layout";
+import { ScrollProgressBar } from "../ScrollProgressBar";
+import { AnnouncementBar } from "../AnnouncementBar";
+import { Header } from "../Header";
+import { Footer } from "../Footer";
+import { ChatBubble } from "../ChatBubble";
+import { BackToTop } from "../BackToTop";
 
 export const LayoutWrapper = ({ children }: Readonly<TNodeChildrentType>) => {
   const queryClient = new QueryClient();
@@ -45,5 +52,32 @@ export const Error404Page = () => {
         Back to dashboard ?{" "}
       </button>
     </div>
+  );
+};
+
+export const AppLayout = () => {
+  return (
+    <RootLayout
+      {...{
+        children: (
+          <>
+            <ScrollProgressBar />
+            <AnnouncementBar />
+            <div className="min-h-screen bg-slate-50 flex flex-col w-full">
+              <Header />
+
+              <main className="w-full flex-1 p-4">
+                <Outlet />
+              </main>
+
+              <Footer />
+            </div>
+
+            <ChatBubble />
+            <BackToTop />
+          </>
+        ),
+      }}
+    />
   );
 };
