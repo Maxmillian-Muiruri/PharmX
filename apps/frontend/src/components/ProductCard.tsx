@@ -1,177 +1,71 @@
-import { useState } from "react";
-import { Star, ShoppingCart, Heart } from "lucide-react";
-import { Card, CardContent } from "./ui/card";
-import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
-import { ImageWithFallback } from "./fallbackImg/ImageWithFallback";
-import { useNavigate } from "react-router-dom";
-
-interface Product {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  originalPrice?: number;
-  rating: number;
-  reviewCount: number;
-  image: string;
-  category: string;
-  inStock: boolean;
-  prescription?: boolean;
-  stockStatus?: "in-stock" | "low-stock" | "out-of-stock";
-}
+import React from 'react';
+import type { Product } from '../types';
 
 interface ProductCardProps {
   product: Product;
-  onAddToCart?: (product: Product, quantity?: number) => void;
+  onAddToCart: (product: Product) => void;
 }
 
-export function ProductCard({ product, onAddToCart }: ProductCardProps) {
-  const [isWishlisted, setIsWishlisted] = useState(false);
-  const navigate = useNavigate();
-
-  const discountPercentage = product.originalPrice
-    ? Math.round(
-        ((product.originalPrice - product.price) / product.originalPrice) * 100,
-      )
-    : 0;
-
-  const handleProductClick = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest("button")) {
-      return;
-    }
-    navigate("/products", { state: { product: product } });
-  };
-
+export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
+  // Render star ratings
+  const renderStars = (rating: number) => {
+  const fullStars = Math.floor(rating);
+  const halfStar = rating % 1 >= 0.5;
+  const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
   return (
-    <Card
-      className={`group hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer ${
-        product.stockStatus === "out-of-stock" ? "opacity-75" : ""
-      }`}
-      onClick={handleProductClick}
-    >
-      <CardContent className="p-0">
-        <div className="relative">
-          <ImageWithFallback
-            src={product.image}
-            alt={product.name}
-            className="w-full h-48 object-cover rounded-t-lg group-hover:scale-105 transition-transform duration-300"
-          />
-
-          {discountPercentage > 0 && (
-            <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-500">
-              -{discountPercentage}%
-            </Badge>
-          )}
-
-          {product.prescription && (
-            <Badge className="absolute top-2 right-2 bg-blue-500 hover:bg-blue-500">
-              Rx
-            </Badge>
-          )}
-
-          {product.stockStatus && (
-            <Badge
-              className={`absolute top-2 right-2 ${
-                product.stockStatus === "in-stock"
-                  ? "bg-green-500 hover:bg-green-500"
-                  : product.stockStatus === "low-stock"
-                    ? "bg-amber-500 hover:bg-amber-500"
-                    : "bg-red-500 hover:bg-red-500"
-              }`}
-            >
-              {product.stockStatus === "in-stock"
-                ? "In Stock"
-                : product.stockStatus === "low-stock"
-                  ? "Only 3 left!"
-                  : "Out of Stock"}
-            </Badge>
-          )}
-
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute top-2 right-2 bg-white/80 hover:bg-white"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsWishlisted(!isWishlisted);
-            }}
-          >
-            <Heart
-              className={`h-4 w-4 ${isWishlisted ? "fill-red-500 text-red-500" : "text-gray-600"}`}
-            />
-          </Button>
-        </div>
-
-        <div className="p-4">
-          <div className="mb-2">
-            <Badge variant="secondary" className="text-xs">
-              {product.category}
-            </Badge>
-          </div>
-
-          <h3 className="text-lg mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-            {product.name}
-          </h3>
-
-          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-            {product.description}
-          </p>
-
-          <div className="flex items-center mb-3">
-            <div className="flex items-center">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className={`h-4 w-4 ${
-                    i < Math.floor(product.rating)
-                      ? "fill-yellow-400 text-yellow-400"
-                      : "text-gray-300"
-                  }`}
-                />
-              ))}
-            </div>
-            <span className="text-sm text-muted-foreground ml-2">
-              {product.rating} ({product.reviewCount})
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <span className="text-xl text-primary">
-                ${product.price.toFixed(2)}
-              </span>
-              {product.originalPrice && (
-                <span className="text-sm text-muted-foreground line-through">
-                  ${product.originalPrice.toFixed(2)}
-                </span>
-              )}
-            </div>
-
-            <span
-              className={`text-xs px-2 py-1 rounded ${
-                product.inStock
-                  ? "bg-cyan-100 text-cyan-800"
-                  : "bg-red-100 text-red-800"
-              }`}
-            >
-              {product.inStock ? "In Stock" : "Out of Stock"}
-            </span>
-          </div>
-
-          <Button
-            className="w-full"
-            onClick={(e) => {
-              e.stopPropagation();
-              onAddToCart?.(product);
-            }}
-            disabled={!product.inStock}
-          >
-            <ShoppingCart className="h-4 w-4 mr-2" />
-            Add to Cart
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="flex items-center">
+      <span className="text-yellow-500">{'★'.repeat(fullStars)}</span>
+      {halfStar && <span className="text-yellow-500">☆</span>}
+      <span className="text-gray-400">{'☆'.repeat(emptyStars)}</span>
+      <span className="ml-1 text-sm text-gray-600">({rating})</span>
+    </div>
   );
-}
+};
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg shadow-md p-4 max-w-sm">
+      {/* Product Image with Discount Badge */}
+      <div className="relative mb-4">
+        <img
+          src={product.image}
+          alt={product.name}
+          className="w-full h-48 object-cover rounded-md"
+        />
+        {product.discount && (
+          <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+            {product.discount}% OFF
+          </div>
+        )}
+      </div>
+
+      {/* Product Details */}
+      <div className="space-y-2">
+        <h3 className="text-lg font-semibold text-gray-800">{product.name}</h3>
+        <p className="text-sm text-gray-600">{product.category}</p>
+        <p className="text-sm text-gray-600">{product.use}</p>
+        <div className="flex items-center justify-between">
+        {renderStars(product.rating)}
+        <span className={`px-3 py-1 text-xs font-bold rounded text-white ${product.stock === false ? 'bg-red-500' : 'bg-green-500'}`}>
+            {product.stock === false ? 'Out of Stock' : 'In Stock'}
+        </span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-lg font-bold text-green-600">
+            KES{product.price.toFixed(2)}
+            {product.originalPrice && (
+              <span className="text-sm text-gray-500 line-through ml-2">
+                KES{product.originalPrice.toFixed(2)}
+              </span>
+            )}
+          </span>
+        </div>
+        <button
+          onClick={() => onAddToCart(product)}
+          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition"
+          disabled={product.stock === false}
+        >
+          {product.stock === false ? 'Out of Stock' : 'Add to Cart'}
+        </button>
+      </div>
+    </div>
+  );
+};
