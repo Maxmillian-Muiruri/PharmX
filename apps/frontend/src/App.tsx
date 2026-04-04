@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { Outlet, RouterProvider, createBrowserRouter } from "react-router-dom";
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { APPContext } from "./context";
 import { AppLayout, Error404Page, ErrorPage } from "./components/dev/core";
 import {

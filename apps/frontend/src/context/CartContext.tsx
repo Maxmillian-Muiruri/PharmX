@@ -61,7 +61,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const getItemCount = () => {
-    return items.reduce((total, item) => total + item.quantity, 0);
+    // Count distinct products in the cart, not total quantity.
+    return items.length;
   };
 
   const getSubtotal = () => {
