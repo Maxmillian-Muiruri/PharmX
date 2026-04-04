@@ -24,6 +24,8 @@ import { AnnouncementBar } from "./components/AnnouncementBar";
 import { ScrollProgressBar } from "./components/ScrollProgressBar";
 import { ChatBubble } from "./components/ChatBubble";
 import { BackToTop } from "./components/BackToTop";
+import { CartProvider } from "./context/CartContext";
+import { ToastProvider } from "./context/ToastContext";
 
 const AppLayout = () => {
   return (
@@ -111,7 +113,13 @@ function App() {
     },
   ]);
 
-  return <RouterProvider router={router} />;
+  return (
+    <ToastProvider>
+      <CartProvider>
+        <RouterProvider router={router} />
+      </CartProvider>
+    </ToastProvider>
+  );
 }
 
 export default App;

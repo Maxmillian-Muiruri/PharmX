@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useCart } from '../../context/CartContext';
 import { ProductCard } from '../../components/ProductCard';
 import type { Product } from '../../types';
 
 export const ProductList = () => {
+  const { addItem } = useCart();
   const [products] = useState<Product[]>([
     
  {
@@ -260,8 +262,19 @@ export const ProductList = () => {
   ]);
 
   const handleAddToCart = (product: Product) => {
-    console.log('Added to cart:', product);
-    // TODO: Integrate with cart logic
+    addItem({
+      name: product.name,
+      category: product.category,
+      brand: 'PharmX',
+      packSize: '1 pack',
+      unitPrice: product.price,
+      quantity: 1,
+      requiresPrescription: false,
+      stockStatus: product.stock === false ? 'out_of_stock' : 'in_stock',
+      stockCount: product.stock === false ? 0 : undefined,
+      imageType: 'tablet',
+      image: product.image,
+    });
   };
 
   return (
