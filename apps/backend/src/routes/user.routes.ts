@@ -6,4 +6,4 @@ const router = Router();
 
 router.get('/profile', authMiddleware, getProfile);
 
-export default router;
+export default router; 

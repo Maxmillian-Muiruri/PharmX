@@ -13,3 +13,38 @@ model User {
   password  String
   createdAt DateTime @default(now())
 }
+
+model Order {
+  id          String      @id @default(uuid())
+  userId      String
+  totalAmount Float
+  status      String
+  createdAt   DateTime    @default(now())
+  orderItems  OrderItem[]
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Float
+  order     Order    @relation(fields: [orderId], references: [id])
+}
+
+model Inventory {
+  id          String   @id @default(uuid())
+  productName String
+  quantity    Int
+  lowStock    Int
+  updatedAt   DateTime @default(now())
+}
+
+model Payment {
+  id          String   @id @default(uuid())
+  orderId     String
+  amount      Float
+  method      String
+  status      String
+  createdAt   DateTime @default(now())
+}
