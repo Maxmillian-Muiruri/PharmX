@@ -26,7 +26,7 @@ usage() {
   echo "Usage: ./setup [up|down|restart|logs|ps|build|pull] [extra compose args]"
   echo ""
   echo "Examples:"
-  echo "  ./setup                 # start with compose.dev.yml"
+  echo "  ./setup                 # build + start detached"
   echo "  ./setup up -d           # start detached"
   echo "  ./setup down -v         # stop and remove volumes"
   echo "  ./setup logs -f backend # follow service logs"
@@ -44,7 +44,12 @@ fi
 
 case "$ACTION" in
   up)
-    compose_cmd -f "$COMPOSE_FILE" up "$@"
+    if [ $# -eq 0 ]; then
+      compose_cmd -f "$COMPOSE_FILE" up --build
+      compose_cmd -f "$COMPOSE_FILE" ps
+    else
+      compose_cmd -f "$COMPOSE_FILE" up "$@"
+    fi
     ;;
   down)
     compose_cmd -f "$COMPOSE_FILE" down "$@"
