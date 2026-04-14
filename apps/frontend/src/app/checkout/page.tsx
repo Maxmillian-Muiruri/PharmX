@@ -35,7 +35,7 @@ function genOrderId() {
 
 function formatCardNumber(v: string) {
   const digits = v.replace(/\D/g, '').slice(0, 16);
-  return digits.replace(/(.{4})/g, '$1 ').trim();
+  return digits.replace(/(.{4})/g, 'KES1 ').trim();
 }
 
 function formatExpiry(v: string) {
@@ -130,16 +130,16 @@ function OrderSidebar({
             <div style={{ fontSize: 11, color: '#64748b' }}>Qty: {item.quantity}</div>
           </div>
           <div style={{ fontSize: 13, fontWeight: 600, color: '#0d4f5c' }}>
-            ${(item.unitPrice * item.quantity).toFixed(2)}
+            KES{(item.unitPrice * item.quantity).toFixed(2)}
           </div>
         </div>
       ))}
 
       <div style={{ borderTop: '1px solid #f1f5f9', marginTop: 12, paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 7 }}>
         {[
-          { label: 'Subtotal', value: `$${subtotal.toFixed(2)}` },
-          { label: 'Delivery', value: delivery === 0 ? 'Free' : `$${delivery.toFixed(2)}` },
-          { label: 'Tax',      value: `$${tax.toFixed(2)}` },
+          { label: 'Subtotal', value: `KES${subtotal.toFixed(2)}` },
+          { label: 'Delivery', value: delivery === 0 ? 'Free' : `KES${delivery.toFixed(2)}` },
+          { label: 'Tax',      value: `KES${tax.toFixed(2)}` },
         ].map(row => (
           <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
             <span style={{ color: '#64748b' }}>{row.label}</span>
@@ -149,7 +149,7 @@ function OrderSidebar({
 
         <div style={{ borderTop: '1px dashed #e2e8f0', marginTop: 4, paddingTop: 10, display: 'flex', justifyContent: 'space-between' }}>
           <span style={{ fontFamily: "'Sora', sans-serif", fontSize: 15, fontWeight: 700, color: '#0d4f5c' }}>Total</span>
-          <span style={{ fontFamily: "'Sora', sans-serif", fontSize: 15, fontWeight: 700, color: '#0d4f5c' }}>${total.toFixed(2)}</span>
+          <span style={{ fontFamily: "'Sora', sans-serif", fontSize: 15, fontWeight: 700, color: '#0d4f5c' }}>KES{total.toFixed(2)}</span>
         </div>
       </div>
 
@@ -242,8 +242,8 @@ function StepShipping({
       {/* Delivery options */}
       <h3 style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 10 }}>Delivery Options</h3>
       {[
-        { id: 'standard' as DeliveryOption, label: 'Standard Delivery', desc: '2-4 business days', price: '$5.99' },
-        { id: 'express'  as DeliveryOption, label: 'Express Delivery',  desc: 'Same day delivery', price: '$9.99' },
+        { id: 'standard' as DeliveryOption, label: 'Standard Delivery', desc: '2-4 business days', price: 'KES 5.99' },
+        { id: 'express'  as DeliveryOption, label: 'Express Delivery',  desc: 'Same day delivery', price: 'KES 9.99' },
       ].map(opt => (
         <div
           key={opt.id}
@@ -520,21 +520,21 @@ function OrderConfirmed({
         {items.map((item, i) => (
           <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 4 }}>
             <span style={{ color: '#12251e', fontWeight: 500 }}>{item.name}</span>
-            <span style={{ color: '#0d4f5c', fontWeight: 600 }}>${(item.unitPrice * item.quantity).toFixed(2)}</span>
+            <span style={{ color: '#0d4f5c', fontWeight: 600 }}>KES{(item.unitPrice * item.quantity).toFixed(2)}</span>
           </div>
         ))}
         <div style={{ borderTop: '1px solid #f1f5f9', marginTop: 10, paddingTop: 10 }}>
           {[
-            { label: 'Subtotal',     value: `$${subtotal.toFixed(2)}` },
-            { label: 'Delivery Fee', value: `$${deliveryFee.toFixed(2)}` },
-            { label: 'Tax',          value: `$${tax.toFixed(2)}` },
+            { label: 'Subtotal',     value: `KES${subtotal.toFixed(2)}` },
+            { label: 'Delivery Fee', value: `KES${deliveryFee.toFixed(2)}` },
+            { label: 'Tax',          value: `KES${tax.toFixed(2)}` },
           ].map(row => (
             <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#64748b', marginBottom: 3 }}>
               <span>{row.label}</span><span>{row.value}</span>
             </div>
           ))}
           <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: "'Sora', sans-serif", fontSize: 15, fontWeight: 700, color: '#0d4f5c', marginTop: 8 }}>
-            <span>Total</span><span style={{ color: '#22c55e' }}>${total.toFixed(2)}</span>
+            <span>Total</span><span style={{ color: '#22c55e' }}>KES{total.toFixed(2)}</span>
           </div>
         </div>
       </div>
