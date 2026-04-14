@@ -7,6 +7,7 @@ import {
   CART_URL,
   CHECKOUT_URL,
   ORDERS_URL,
+  ORDERDETAIL_URL,
   PRODUCTLIST_URL,
   SIGNUP_URL,
 } from "./utils";
@@ -92,6 +93,12 @@ function App() {
         {
           path: ORDERS_URL,
           Component: MyOrders,
+        },
+
+        // track order
+        {
+          path: ORDERDETAIL_URL,
+          lazy: () => import('./app/orders/[id]/page').then(module => ({ Component: module.default })),
         },
 
         // contact
