@@ -25,5 +25,6 @@ export const navLinks = [
   { to: PRODUCTLIST_URL, label: "Products" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
+  { to: ORDERS_URL, label: "My Orders" },
   { to: CART_URL, label: "Cart" },
 ];
