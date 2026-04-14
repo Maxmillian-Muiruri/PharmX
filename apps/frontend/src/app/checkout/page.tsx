@@ -370,7 +370,7 @@ function StepPayment({
 function StepReview({
   items, onBack, onPlace, placing,
 }: {
-  items: Array<{ name: string; quantity: number; unitPrice: number }>;
+  items: Array<{ name: string; quantity: number; unitPrice: number; image?: string }>;
   onBack: () => void;
   onPlace: () => void;
   placing: boolean;
@@ -391,14 +391,18 @@ function StepReview({
         <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ width: 44, height: 44, borderRadius: 8, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="3" /></svg>
+              {item.image ? (
+                <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8 }} />
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="3" /></svg>
+              )}
             </div>
             <div>
               <div style={{ fontSize: 14, fontWeight: 600, color: '#12251e' }}>{item.name}</div>
               <div style={{ fontSize: 12, color: '#64748b' }}>Qty: {item.quantity}</div>
             </div>
           </div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: '#0d4f5c' }}>${(item.unitPrice * item.quantity).toFixed(2)}</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#0d4f5c' }}>KES{(item.unitPrice * item.quantity).toFixed(2)}</div>
         </div>
       ))}
 
