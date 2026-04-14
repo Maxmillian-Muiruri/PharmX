@@ -5,6 +5,8 @@ import { AppLayout, Error404Page, ErrorPage } from "./components/dev/core";
 import {
   AUTH_URL_PREFIX,
   CART_URL,
+  CHECKOUT_URL,
+  ORDERS_URL,
   PRODUCTLIST_URL,
   // ROOT_URL_PREFIX,
   SIGNUP_URL,
@@ -19,6 +21,8 @@ import { ProductList } from "./app/products/page";
 import ProductsListLayout from "./app/products/layout";
 import { ProductDetail } from "./app/products/product/page";
 import { Cart } from "./app/cart/page";
+import { Checkout } from "./app/checkout/page";
+import MyOrders from "./app/my-orders/page";
 import { ToastProvider } from "./context/ToastContext";
 import { CartProvider } from "./context/CartContext";
 
@@ -77,6 +81,18 @@ function App() {
         {
           path: CART_URL,
           Component: Cart,
+        },
+
+        // checkout
+        {
+          path: CHECKOUT_URL,
+          Component: Checkout,
+        },
+
+        // my-orders
+        {
+          path: ORDERS_URL,
+          Component: MyOrders,
         },
 
         // contact

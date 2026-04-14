@@ -3,7 +3,6 @@ import type { JSX } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
-import { PRODUCTLIST_URL } from '../../utils';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -137,11 +136,7 @@ function CartItemCard({
       {/* Image */}
       <div style={{ position: 'relative', width: 72, height: 72, minWidth: 72, borderRadius: 8, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
         {item.image ? (
-          <img
-            src={item.image}
-            alt={item.name}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
+          <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
           <MedicineIcon type={item.imageType} />
         )}
@@ -203,6 +198,7 @@ function CartItemCard({
 
 function SuggestedItems({ items, onAdd }: { items: SuggestedItem[]; onAdd: (item: SuggestedItem) => void }) {
   const [added, setAdded] = useState<Set<string>>(new Set());
+  if (items.length === 0) return null;
 
   return (
     <div style={{ marginTop: 20 }}>
@@ -213,8 +209,6 @@ function SuggestedItems({ items, onAdd }: { items: SuggestedItem[]; onAdd: (item
           return (
             <button key={item.id} onClick={() => { if (!isAdded) { setAdded(prev => new Set(prev).add(item.id)); onAdd(item); } }}
               style={{ background: isAdded ? '#f0fdf4' : '#fff', border: `1px solid ${isAdded ? '#22c55e' : '#e2e8f0'}`, borderRadius: 10, padding: '10px 8px', textAlign: 'center', cursor: 'pointer', transition: 'border-color .2s, box-shadow .2s' }}
-              onMouseEnter={e => { if (!isAdded) (e.currentTarget as HTMLButtonElement).style.borderColor = '#cbd5e1'; }}
-              onMouseLeave={e => { if (!isAdded) (e.currentTarget as HTMLButtonElement).style.borderColor = '#e2e8f0'; }}
             >
               <div style={{ width: 40, height: 40, background: '#f1f5f9', borderRadius: 8, margin: '0 auto 6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <MedicineIcon type={item.imageType} size={22} />
@@ -340,321 +334,31 @@ function EmptyCart() {
         Browse Products
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
       </a>
-    </div>);
-}
-
-function CheckoutModal({
-  open,
-  onClose,
-  onConfirm,
-  items,
-  subtotal,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  items: CartItem[];
-  subtotal: number;
-}) {
-  const { addToast } = useToast();
-  const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
-  const [mpesaStep, setMpesaStep] = useState<'phone' | 'prompting' | 'success' | null>(null);
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [showMpesaModal, setShowMpesaModal] = useState(false);
-  const [cardStep, setCardStep] = useState<'details' | 'processing' | 'success' | null>(null);
-  const [cardNumber, setCardNumber] = useState('');
-  const [cardExpiry, setCardExpiry] = useState('');
-  const [cardCvv, setCardCvv] = useState('');
-  const [cardName, setCardName] = useState('');
-  const [showCardModal, setShowCardModal] = useState(false);
-
-  if (!open) return null;
-
-  const deliveryFee = 150;
-  const total = subtotal + deliveryFee;
-
-  const handleMpesaClick = () => {
-    setSelectedMethod('M-Pesa');
-    setMpesaStep('phone');
-    setShowMpesaModal(true);
-  };
-
-  const handleMpesaPay = () => {
-    if (phoneNumber.length < 10) {
-      addToast({ type: 'error', message: 'Please enter a valid phone number (10 digits)', duration: 3000 });
-      return;
-    }
-    setMpesaStep('prompting');
-    setTimeout(() => setMpesaStep('success'), 2500);
-    setTimeout(() => {
-      setShowMpesaModal(false);
-      setSelectedMethod('M-Pesa');
-      onConfirm();
-    }, 4000);
-  };
-
-  const handleCardClick = () => {
-    setSelectedMethod('Card');
-    setCardStep('details');
-    setShowCardModal(true);
-  };
-
-  const formatCardNumber = (value: string) => {
-    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-    const matches = v.match(/\d{4,16}/g);
-    const match = (matches && matches[0]) || '';
-    const parts = [];
-    for (let i = 0, len = match.length; i < len; i += 4) {
-      parts.push(match.substring(i, i + 4));
-    }
-    return parts.length ? parts.join(' ') : v;
-  };
-
-  const formatExpiry = (value: string) => {
-    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-    if (v.length >= 2) return v.slice(0, 2) + '/' + v.slice(2, 4);
-    return v;
-  };
-
-  const handleCardPay = () => {
-    if (cardNumber.replace(/\s/g, '').length < 16) {
-      addToast({ type: 'error', message: 'Please enter a valid card number', duration: 3000 });
-      return;
-    }
-    if (!cardExpiry || cardExpiry.length < 5) {
-      addToast({ type: 'error', message: 'Please enter expiry date (MM/YY)', duration: 3000 });
-      return;
-    }
-    if (cardCvv.length < 3) {
-      addToast({ type: 'error', message: 'Please enter valid CVV', duration: 3000 });
-      return;
-    }
-    if (!cardName) {
-      addToast({ type: 'error', message: 'Please enter cardholder name', duration: 3000 });
-      return;
-    }
-    setCardStep('processing');
-    setTimeout(() => setCardStep('success'), 2500);
-    setTimeout(() => {
-      setShowCardModal(false);
-      setSelectedMethod('Card');
-      onConfirm();
-    }, 4000);
-  };
-
-  return (
-    <>
-      <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-        <div style={{ width: 'min(700px,100%)', background: '#fff', borderRadius: 20, overflow: 'hidden', boxShadow: '0 40px 80px rgba(0,0,0,0.2)' }}>
-          <div style={{ padding: '1.5rem', borderBottom: '1px solid #e2e8f0' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-              <div>
-                <h2 style={{ margin: 0, fontSize: 22, color: '#0d4f5c' }}>Checkout Payment</h2>
-                <p style={{ margin: '8px 0 0', color: '#64748b', fontSize: 13 }}>Review your order and select a payment method.</p>
-              </div>
-              <button onClick={onClose} style={{ border: 'none', background: 'none', color: '#64748b', cursor: 'pointer', fontSize: 24, lineHeight: 1 }}>&times;</button>
-            </div>
-          </div>
-
-          <div style={{ padding: '1.5rem', display: 'grid', gap: 18 }}>
-            <div style={{ display: 'grid', gap: 10 }}>
-              <h3 style={{ margin: 0, fontSize: 16, color: '#0d4f5c' }}>Order Summary</h3>
-              {items.map(item => (
-                <div key={item.id} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>
-                  <div style={{ width: 50, height: 50, borderRadius: 12, overflow: 'hidden', background: '#f8fafc', display: 'grid', placeItems: 'center' }}>
-                    {item.image ? <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <MedicineIcon type={item.imageType} />}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: '#12251e' }}>{item.name}</div>
-                    <div style={{ fontSize: 12, color: '#64748b' }}>{item.quantity} × KSh {item.unitPrice.toFixed(2)}</div>
-                  </div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#0d4f5c' }}>KSh {(item.unitPrice * item.quantity).toFixed(2)}</div>
-                </div>
-              ))}
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, color: '#0d4f5c' }}>
-              <span>Subtotal</span>
-              <span>KSh {subtotal.toFixed(2)}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, color: '#64748b' }}>
-              <span>Delivery fee</span>
-              <span>KSh 150</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 16, fontWeight: 700, color: '#0d4f5c' }}>
-              <span>Total</span>
-              <span>KSh {total.toFixed(2)}</span>
-            </div>
-
-            <div style={{ display: 'grid', gap: 8 }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: '#0d4f5c' }}>Payment method</span>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
-                <button onClick={handleMpesaClick} style={{ padding: '12px 10px', borderRadius: 12, border: `2px solid ${selectedMethod === 'M-Pesa' ? '#22c55e' : '#e2e8f0'}`, background: selectedMethod === 'M-Pesa' ? '#f0fdf4' : '#f8fafc', color: '#0d4f5c', fontWeight: 600, cursor: 'pointer' }}>M-Pesa</button>
-                <button onClick={handleCardClick} style={{ padding: '12px 10px', borderRadius: 12, border: `2px solid ${selectedMethod === 'Card' ? '#22c55e' : '#e2e8f0'}`, background: selectedMethod === 'Card' ? '#f0fdf4' : '#f8fafc', color: '#0d4f5c', fontWeight: 600, cursor: 'pointer' }}>Card</button>
-                <button onClick={() => setSelectedMethod('Cash on Delivery')} style={{ padding: '12px 10px', borderRadius: 12, border: `2px solid ${selectedMethod === 'Cash on Delivery' ? '#22c55e' : '#e2e8f0'}`, background: selectedMethod === 'Cash on Delivery' ? '#f0fdf4' : '#f8fafc', color: '#0d4f5c', fontWeight: 600, cursor: 'pointer' }}>Cash on Delivery</button>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 10 }}>
-              <button onClick={onClose} style={{ padding: '12px 18px', borderRadius: 12, border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={onConfirm} disabled={!selectedMethod} style={{ padding: '12px 18px', borderRadius: 12, border: 'none', background: selectedMethod ? '#0d4f5c' : '#94a3b8', color: '#fff', cursor: selectedMethod ? 'pointer' : 'not-allowed' }}>Confirm Payment</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* M-Pesa Modal */}
-      {showMpesaModal && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 1100, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <div style={{ width: 'min(400px,100%)', background: '#fff', borderRadius: 16, padding: 24, boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
-            {mpesaStep === 'phone' && (
-              <>
-                <div style={{ textAlign: 'center', marginBottom: 20 }}>
-                  <div style={{ width: 60, height: 60, background: '#22c55e', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M17 6.1H3M21 12.1H3M15.1 18.1H3" /></svg>
-                  </div>
-                  <h3 style={{ margin: 0, fontSize: 18, color: '#0d4f5c' }}>Pay with M-Pesa</h3>
-                  <p style={{ margin: '6px 0 0', fontSize: 13, color: '#64748b' }}>Enter your M-Pesa registered number</p>
-                </div>
-                <input type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))} placeholder="e.g. 712345678" style={{ width: '100%', padding: '14px 16px', fontSize: 16, border: '2px solid #e2e8f0', borderRadius: 12, marginBottom: 16, boxSizing: 'border-box' }} />
-                <div style={{ display: 'flex', gap: 10 }}>
-                  <button onClick={() => { setShowMpesaModal(false); setMpesaStep(null); }} style={{ flex: 1, padding: '12px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', cursor: 'pointer' }}>Cancel</button>
-                  <button onClick={handleMpesaPay} style={{ flex: 1, padding: '12px', borderRadius: 10, border: 'none', background: '#22c55e', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>Pay KSh {total.toFixed(2)}</button>
-                </div>
-              </>
-            )}
-            {mpesaStep === 'prompting' && (
-              <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                <div style={{ width: 80, height: 80, border: '4px solid #f59e0b', borderTopColor: 'transparent', borderRadius: '50%', margin: '0 auto 16px', animation: 'spin 1s linear infinite' }} />
-                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-                <h3 style={{ margin: 0, fontSize: 18, color: '#0d4f5c' }}>Sending Payment Request</h3>
-                <p style={{ margin: '8px 0 0', fontSize: 13, color: '#64748b' }}>A pop-up has been sent to<br /><strong style={{ color: '#0d4f5c' }}>254{phoneNumber.slice(-9)}</strong></p>
-              </div>
-            )}
-            {mpesaStep === 'success' && (
-              <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                <div style={{ width: 80, height: 80, background: '#22c55e', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><path d="M5 13l4 4L19 7" /></svg>
-                </div>
-                <h3 style={{ margin: 0, fontSize: 20, color: '#22c55e' }}>Payment Complete!</h3>
-                <p style={{ margin: '8px 0 0', fontSize: 13, color: '#64748b' }}>KSh {total.toFixed(2)} paid successfully</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Card Modal */}
-      {showCardModal && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 1100, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <div style={{ width: 'min(420px,100%)', background: '#fff', borderRadius: 16, padding: 24, boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
-            {cardStep === 'details' && (
-              <>
-                <div style={{ textAlign: 'center', marginBottom: 20 }}>
-                  <div style={{ width: 60, height: 60, background: '#6366f1', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg>
-                  </div>
-                  <h3 style={{ margin: 0, fontSize: 18, color: '#0d4f5c' }}>Pay with Card</h3>
-                  <p style={{ margin: '6px 0 0', fontSize: 13, color: '#64748b' }}>Enter your card details</p>
-                </div>
-                <div style={{ marginBottom: 12 }}>
-                  <label style={{ display: 'block', fontSize: 12, color: '#64748b', marginBottom: 4 }}>Card Number</label>
-                  <input type="text" value={cardNumber} onChange={(e) => setCardNumber(formatCardNumber(e.target.value))} placeholder="1234 5678 9012 3456" maxLength={19} style={{ width: '100%', padding: '12px 14px', fontSize: 15, border: '2px solid #e2e8f0', borderRadius: 10, boxSizing: 'border-box' }} />
-                </div>
-                <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: 12, color: '#64748b', marginBottom: 4 }}>Expiry</label>
-                    <input type="text" value={cardExpiry} onChange={(e) => setCardExpiry(formatExpiry(e.target.value))} placeholder="MM/YY" maxLength={5} style={{ width: '100%', padding: '12px 14px', fontSize: 15, border: '2px solid #e2e8f0', borderRadius: 10, boxSizing: 'border-box' }} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: 12, color: '#64748b', marginBottom: 4 }}>CVV</label>
-                    <input type="text" value={cardCvv} onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="123" maxLength={4} style={{ width: '100%', padding: '12px 14px', fontSize: 15, border: '2px solid #e2e8f0', borderRadius: 10, boxSizing: 'border-box' }} />
-                  </div>
-                </div>
-                <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: 'block', fontSize: 12, color: '#64748b', marginBottom: 4 }}>Cardholder Name</label>
-                  <input type="text" value={cardName} onChange={(e) => setCardName(e.target.value)} placeholder="John Doe" style={{ width: '100%', padding: '12px 14px', fontSize: 15, border: '2px solid #e2e8f0', borderRadius: 10, boxSizing: 'border-box' }} />
-                </div>
-                <div style={{ display: 'flex', gap: 10 }}>
-                  <button onClick={() => { setShowCardModal(false); setCardStep(null); }} style={{ flex: 1, padding: '12px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', cursor: 'pointer' }}>Cancel</button>
-                  <button onClick={handleCardPay} style={{ flex: 1, padding: '12px', borderRadius: 10, border: 'none', background: '#6366f1', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>Pay KSh {total.toFixed(2)}</button>
-                </div>
-              </>
-            )}
-            {cardStep === 'processing' && (
-              <div style={{ textAlign: 'center', padding: '40px 0' }}>
-                <div style={{ width: 80, height: 80, border: '4px solid #6366f1', borderTopColor: 'transparent', borderRadius: '50%', margin: '0 auto 16px', animation: 'spin 1s linear infinite' }} />
-                <h3 style={{ margin: 0, fontSize: 18, color: '#0d4f5c' }}>Processing Payment</h3>
-                <p style={{ margin: '8px 0 0', fontSize: 13, color: '#64748b' }}>Please wait...</p>
-              </div>
-            )}
-            {cardStep === 'success' && (
-              <div style={{ textAlign: 'center', padding: '40px 0' }}>
-                <div style={{ width: 80, height: 80, background: '#22c55e', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><path d="M5 13l4 4L19 7" /></svg>
-                </div>
-                <h3 style={{ margin: 0, fontSize: 20, color: '#22c55e' }}>Payment Successful!</h3>
-                <p style={{ margin: '8px 0 0', fontSize: 13, color: '#64748b' }}>KSh {total.toFixed(2)} paid successfully</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </>
+    </div>
   );
 }
+
+// ─── Cart ─────────────────────────────────────────────────────────────────────
 
 export const Cart = () => {
   const navigate = useNavigate();
   const { items, updateQuantity, removeItem, clearCart, getSubtotal } = useCart();
   const { addToast } = useToast();
   const [rxUploaded, setRxUploaded] = useState(false);
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
-
-  console.log('Cart component rendering, items:', items);
 
   const hasRxItems = items.some(item => item.requiresPrescription);
   const subtotal = getSubtotal();
-
-  const handleQuantityChange = (id: string, quantity: number) => {
-    updateQuantity(id, quantity);
-  };
-
-  const handleRemove = (id: string) => {
-    removeItem(id);
-  };
-
-  const handleAddSuggested = (suggested: SuggestedItem) => {
-    // This will be handled by the cart context when called from SuggestedItems
-    console.log('Add suggested item:', suggested);
-  };
 
   const handleCheckout = () => {
     if (hasRxItems && !rxUploaded) {
       addToast({
         type: 'error',
         message: 'Please upload your prescription before proceeding to checkout.',
-        duration: 4000
+        duration: 4000,
       });
       return;
     }
-
-    setCheckoutOpen(true);
-  };
-
-  const handleConfirmPayment = () => {
-    addToast({
-      type: 'success',
-      message: 'Checkout complete! Thank you for your order!',
-      duration: 4000
-    });
-    setCheckoutOpen(false);
-    clearCart();
-    navigate(PRODUCTLIST_URL);
-  };
-
-  const handleCloseModal = () => {
-    setCheckoutOpen(false);
+    navigate('/checkout');
   };
 
   if (items.length === 0) return <EmptyCart />;
@@ -701,25 +405,18 @@ export const Cart = () => {
             <CartItemCard
               key={item.id}
               item={item}
-              onQuantityChange={handleQuantityChange}
-              onRemove={handleRemove}
+              onQuantityChange={updateQuantity}
+              onRemove={removeItem}
               onSave={id => console.log('Saved:', id)}
             />
           ))}
 
-          <SuggestedItems items={SUGGESTED_ITEMS} onAdd={handleAddSuggested} />
+          <SuggestedItems items={SUGGESTED_ITEMS} onAdd={() => {}} />
         </div>
 
         {/* Right */}
         <OrderSummary subtotal={subtotal} itemCount={items.length} onCheckout={handleCheckout} />
       </div>
-      <CheckoutModal
-        open={checkoutOpen}
-        onClose={handleCloseModal}
-        onConfirm={handleConfirmPayment}
-        items={items}
-        subtotal={subtotal}
-      />
     </div>
   );
 };
