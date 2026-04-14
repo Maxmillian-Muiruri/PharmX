@@ -6,7 +6,7 @@ import { useToast } from '../../context/ToastContext';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type Step = 1 | 2 | 3;
-type PaymentMethod = 'Credit/Debit Card' | 'PayPal' | null;
+type PaymentMethod = 'Credit/Debit Card' | 'M-Pesa' | null;
 type DeliveryOption = 'standard' | 'express';
 
 interface ShippingInfo {
@@ -27,6 +27,10 @@ interface CardInfo {
   name: string;
 }
 
+interface MpesaInfo {
+  phoneNumber: string;
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function genOrderId() {
@@ -35,7 +39,21 @@ function genOrderId() {
 
 function formatCardNumber(v: string) {
   const digits = v.replace(/\D/g, '').slice(0, 16);
-  return digits.replace(/(.{4})/g, 'KES1 ').trim();
+  return digits.replace(/(.{4})/g, ' ').trim();
+}
+
+function formatMpesaNumber(v: string) {
+  const digits = v.replace(/\D/g, '').slice(0, 12);
+  if (digits.startsWith('254')) {
+    return digits;
+  } else if (digits.startsWith('0')) {
+    return '254' + digits.slice(1);
+  } else if (digits.startsWith('7')) {
+    return '2547' + digits.slice(1);
+  } else if (digits.startsWith('1')) {
+    return '2541' + digits.slice(1);
+  }
+  return digits;
 }
 
 function formatExpiry(v: string) {
@@ -293,16 +311,19 @@ function StepShipping({
 // ─── Step 2: Payment ──────────────────────────────────────────────────────────
 
 function StepPayment({
-  payMethod, setPayMethod, card, setCard, onBack, onNext,
+  payMethod, setPayMethod, card, setCard, mpesa, setMpesa, onBack, onNext,
 }: {
   payMethod: PaymentMethod;
   setPayMethod: (m: PaymentMethod) => void;
   card: CardInfo;
   setCard: (c: CardInfo) => void;
+  mpesa: MpesaInfo;
+  setMpesa: (m: MpesaInfo) => void;
   onBack: () => void;
   onNext: () => void;
 }) {
   const setC = (key: keyof CardInfo) => (v: string) => setCard({ ...card, [key]: v });
+  const setM = (key: keyof MpesaInfo) => (v: string) => setMpesa({ ...mpesa, [key]: v });
 
   return (
     <div>
@@ -314,7 +335,7 @@ function StepPayment({
       </div>
 
       {/* Method toggle */}
-      {(['Credit/Debit Card', 'PayPal'] as PaymentMethod[]).map(m => (
+      {(['Credit/Debit Card', 'M-Pesa'] as PaymentMethod[]).map(m => (
         <div
           key={m!}
           onClick={() => setPayMethod(m)}
@@ -350,6 +371,45 @@ function StepPayment({
             <Field label="CVV"         required value={card.cvv}    onChange={v => setC('cvv')(v.replace(/\D/g,'').slice(0,4))}   placeholder="123" />
           </div>
           <Field label="Name on Card" required value={card.name} onChange={setC('name')} placeholder="John Doe" />
+        </div>
+      )}
+
+      {/* M-Pesa details */}
+      {payMethod === 'M-Pesa' && (
+        <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{
+            background: '#f0f9ff',
+            border: '1px solid #0ea5e9',
+            borderRadius: 8,
+            padding: '12px',
+            marginBottom: 8
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+              <div style={{ width: 24, height: 24, background: '#10b981', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ color: '#fff', fontSize: 12, fontWeight: 'bold' }}>M</span>
+              </div>
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#0d4f5c' }}>M-Pesa Payment</span>
+            </div>
+            <p style={{ fontSize: 11, color: '#64748b', margin: 0, lineHeight: 1.4 }}>
+              Enter your M-Pesa phone number to receive an STK push prompt for payment confirmation.
+            </p>
+          </div>
+          <Field
+            label="M-Pesa Phone Number" required
+            value={mpesa.phoneNumber}
+            onChange={v => setM('phoneNumber')(formatMpesaNumber(v))}
+            placeholder="2547XXXXXXXX or 07XXXXXXXX"
+          />
+          <div style={{
+            background: '#fef3c7',
+            border: '1px solid #f59e0b',
+            borderRadius: 8,
+            padding: '10px',
+            fontSize: 11,
+            color: '#92400e'
+          }}>
+            <strong>Note:</strong> Ensure your phone has sufficient balance and is available to receive the STK push.
+          </div>
         </div>
       )}
 
@@ -497,7 +557,7 @@ function OrderConfirmed({
             Download Receipt
           </button>
           <button onClick={onTrack} style={{ height: 34, padding: '0 14px', border: 'none', borderRadius: 8, background: '#0d4f5c', color: '#fff', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
-            Track Order
+            View my Orders
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
           </button>
         </div>
@@ -506,9 +566,9 @@ function OrderConfirmed({
       {/* Status cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 20 }}>
         {[
-          { icon: '📦', title: 'Order Placed', value: now },
-          { icon: '🚚', title: 'Estimated Delivery', value: delivery === 'express' ? 'Same day' : '2-4 hours' },
-          { icon: '✅', title: 'Payment Status', value: 'Confirmed', green: true },
+          { icon: '', title: 'Order Placed', value: now },
+          { icon: '', title: 'Estimated Delivery', value: delivery === 'express' ? 'Same day' : '2-4 hours' },
+          { icon: '', title: 'Payment Status', value: 'Confirmed', green: true },
         ].map(card => (
           <div key={card.title} style={{ border: '1px solid #e2e8f0', borderRadius: 12, padding: '14px 12px', textAlign: 'center', background: '#fff' }}>
             <div style={{ fontSize: 22, marginBottom: 6 }}>{card.icon}</div>
@@ -553,8 +613,8 @@ function OrderConfirmed({
           <div style={{ fontSize: 13, color: '#12251e', fontWeight: 600 }}>{shipping.firstName} {shipping.lastName}</div>
           <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{shipping.street}</div>
           <div style={{ fontSize: 12, color: '#64748b' }}>{shipping.city}, {shipping.state} {shipping.zip}</div>
-          <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>📞 {shipping.phone}</div>
-          <div style={{ fontSize: 12, color: '#64748b' }}>✉ {shipping.email}</div>
+          <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}> {shipping.phone}</div>
+          <div style={{ fontSize: 12, color: '#64748b' }}>{shipping.email}</div>
         </div>
         <div style={{ border: '1px solid #e2e8f0', borderRadius: 12, padding: '14px 16px', background: '#fff' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
@@ -566,7 +626,7 @@ function OrderConfirmed({
           <div style={{ fontSize: 12, color: '#64748b', marginBottom: 2 }}>Transaction ID</div>
           <div style={{ fontSize: 12, color: '#12251e', marginBottom: 6 }}>{txnId}</div>
           <div style={{ fontSize: 12, color: '#64748b', marginBottom: 2 }}>Payment Status</div>
-          <span style={{ fontSize: 11, background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: 999, fontWeight: 600 }}>✓ Payment Successful</span>
+          <span style={{ fontSize: 11, background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: 999, fontWeight: 600 }}> Payment Successful</span>
         </div>
       </div>
 
@@ -595,7 +655,7 @@ function OrderConfirmed({
           Continue Shopping
         </button>
         <button onClick={onTrack} style={{ height: 42, padding: '0 20px', background: '#0d4f5c', color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-          Track Your Order
+          View My Orders
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
         </button>
       </div>
@@ -622,6 +682,7 @@ export const Checkout = () => {
   const [delivery, setDelivery] = useState<DeliveryOption>('standard');
   const [payMethod,setPayMethod]= useState<PaymentMethod>(null);
   const [card, setCard] = useState<CardInfo>({ number: '', expiry: '', cvv: '', name: '' });
+  const [mpesa, setMpesa] = useState<MpesaInfo>({ phoneNumber: '' });
   const [shipping, setShipping] = useState<ShippingInfo>({
     firstName: '', lastName: '', email: '', phone: '',
     street: '', city: '', state: '', zip: '',
@@ -638,15 +699,28 @@ export const Checkout = () => {
 
   const handlePlace = () => {
     setPlacing(true);
-    // Show processing toast
-    addToast({ type: 'success', message: 'Processing your payment...', duration: 2000 });
+    
+    // Show appropriate processing message based on payment method
+    if (payMethod === 'M-Pesa') {
+      addToast({ type: 'info', message: 'Sending STK push to your phone...', duration: 3000 });
+    } else {
+      addToast({ type: 'success', message: 'Processing your payment...', duration: 2000 });
+    }
+    
     setTimeout(() => {
       const id = genOrderId();
       setOrderId(id);
       setConfirmed(true);
       clearCart();
       setPlacing(false);
-    }, 2500);
+      
+      // Show success message based on payment method
+      if (payMethod === 'M-Pesa') {
+        addToast({ type: 'success', message: 'M-Pesa payment successful!', duration: 3000 });
+      } else {
+        addToast({ type: 'success', message: 'Payment processed successfully!', duration: 3000 });
+      }
+    }, payMethod === 'M-Pesa' ? 4000 : 2500); // Longer delay for M-Pesa to simulate STK process
   };
 
   if (confirmed) {
@@ -696,6 +770,7 @@ export const Checkout = () => {
             <StepPayment
               payMethod={payMethod} setPayMethod={setPayMethod}
               card={card} setCard={setCard}
+              mpesa={mpesa} setMpesa={setMpesa}
               onBack={() => setStep(1)}
               onNext={() => setStep(3)}
             />
