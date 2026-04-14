@@ -9,7 +9,6 @@ import {
   ORDERS_URL,
   ORDERDETAIL_URL,
   PRODUCTLIST_URL,
-  // ROOT_URL_PREFIX,
   SIGNUP_URL,
 } from "./utils";
 import { Auth } from "./app/auth/page";
@@ -20,7 +19,7 @@ import { Signin } from "./app/auth/signin/page";
 import { Signup } from "./app/auth/signup/page";
 import { ProductList } from "./app/products/page";
 import ProductsListLayout from "./app/products/layout";
-import { ProductDetail } from "./app/products/product/page";
+import ProductDetail from "./app/products/product/page";
 import { Cart } from "./app/cart/page";
 import { Checkout } from "./app/checkout/page";
 import MyOrders from "./app/my-orders/page";
