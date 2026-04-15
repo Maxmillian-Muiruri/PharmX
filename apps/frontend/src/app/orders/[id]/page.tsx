@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { getStoredOrderById } from '../../../utils/prescriptions';
 
 // Types
 type OrderStatus = 'Processing' | 'In Progress' | 'On the Way' | 'Delivered' | 'Cancelled' | 'Confirmed';
@@ -124,34 +125,23 @@ export default function TrackOrder() {
 
   // Mock order data - in real app, this would be fetched from API
   useEffect(() => {
-    const mockOrder: Order = {
-      id: id || 'ORD-Q4PL5AAY4',
-      date: 'April 13, 2026 at 10:12 PM',
-      items: [
-        { name: 'Baby Formula Powder', quantity: 1, price: 34.99 },
-        { name: 'Vitamin D Supplements', quantity: 2, price: 12.99 },
-      ],
-      total: 65.47,
-      estimatedDelivery: '2-4 hours',
-      status: 'In Progress',
-      shippingInfo: {
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john.doe@example.com',
-        phone: '+254712345678',
-        street: '123 Main Street',
-        city: 'Nairobi',
-        state: 'Nairobi County',
-        zip: '00100',
-      },
-      paymentMethod: 'M-Pesa',
-      transactionId: 'TXN-ORD-Q4PL5AAY4',
-    };
-
+const stored = getStoredOrderById(id);
     setTimeout(() => {
-      setOrder(mockOrder);
+      if (stored) {
+        setOrder({
+          id: stored.id,
+          date: stored.date,
+          items: stored.items,
+          total: stored.total,
+          estimatedDelivery: stored.estimatedDelivery,
+          status: stored.status === 'Confirmed' ? 'Processing' : stored.status,
+          shippingInfo: stored.shippingInfo,
+          paymentMethod: stored.paymentMethod ?? 'Not provided',
+          transactionId: stored.transactionId,
+        });
+      }
       setLoading(false);
-    }, 1000);
+    }, 500);
   }, [id]);
 
   if (loading) {

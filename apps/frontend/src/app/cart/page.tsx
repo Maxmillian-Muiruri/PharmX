@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { JSX } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
-import { useToast } from '../../context/ToastContext';
+import { PRESCRIPTION_URL } from '../../utils';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -343,21 +343,11 @@ function EmptyCart() {
 export const Cart = () => {
   const navigate = useNavigate();
   const { items, updateQuantity, removeItem, clearCart, getSubtotal } = useCart();
-  const { addToast } = useToast();
-  const [rxUploaded, setRxUploaded] = useState(false);
 
   const hasRxItems = items.some(item => item.requiresPrescription);
   const subtotal = getSubtotal();
 
   const handleCheckout = () => {
-    if (hasRxItems && !rxUploaded) {
-      addToast({
-        type: 'error',
-        message: 'Please upload your prescription before proceeding to checkout.',
-        duration: 4000,
-      });
-      return;
-    }
     navigate('/checkout');
   };
 
@@ -392,11 +382,11 @@ export const Cart = () => {
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
               </div>
               <div style={{ flex: 1 }}>
-                <p style={{ fontSize: 13, fontWeight: 600 }}>Prescription items require verification</p>
-                <p style={{ fontSize: 11, opacity: .8, marginTop: 1 }}>Upload or link your prescription before checkout</p>
+                <p style={{ fontSize: 13, fontWeight: 600 }}>Need us to check a hospital prescription too?</p>
+                <p style={{ fontSize: 11, opacity: .8, marginTop: 1 }}>Upload it separately and we will confirm availability before you pay for that request.</p>
               </div>
-              <button onClick={() => setRxUploaded(true)} style={{ fontSize: 11, color: 'rgba(255,255,255,.85)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', whiteSpace: 'nowrap', fontFamily: 'inherit' }}>
-                {rxUploaded ? '✓ Rx Uploaded' : 'Upload Rx →'}
+              <button onClick={() => navigate(PRESCRIPTION_URL)} style={{ fontSize: 11, color: 'rgba(255,255,255,.85)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', whiteSpace: 'nowrap', fontFamily: 'inherit' }}>
+                Upload Rx →
               </button>
             </div>
           )}

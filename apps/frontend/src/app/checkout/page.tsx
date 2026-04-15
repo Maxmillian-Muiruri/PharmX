@@ -2,6 +2,13 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
+import {
+  clearCheckoutPrescriptionId,
+  getCheckoutPrescriptionId,
+  getPrescriptionById,
+  saveOrder,
+} from '../../utils/prescriptions';
+import type { StoredOrder } from '../../types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -673,6 +680,7 @@ export const Checkout = () => {
   const navigate = useNavigate();
   const { items, clearCart } = useCart();
   const { addToast } = useToast();
+  const [prescriptionData] = useState(() => getPrescriptionById(getCheckoutPrescriptionId()));
 
   const [step,     setStep]     = useState<Step>(1);
   const [placing,  setPlacing]  = useState(false);
@@ -684,18 +692,33 @@ export const Checkout = () => {
   const [card, setCard] = useState<CardInfo>({ number: '', expiry: '', cvv: '', name: '' });
   const [mpesa, setMpesa] = useState<MpesaInfo>({ phoneNumber: '' });
   const [shipping, setShipping] = useState<ShippingInfo>({
-    firstName: '', lastName: '', email: '', phone: '',
-    street: '', city: '', state: '', zip: '',
+    firstName: prescriptionData?.patientName.split(' ')[0] ?? '',
+    lastName: prescriptionData?.patientName.split(' ').slice(1).join(' ') ?? '',
+    email: prescriptionData?.email ?? '',
+    phone: prescriptionData?.phoneNumber ?? '',
+    street: prescriptionData?.address ?? '',
+    city: '',
+    state: '',
+    zip: '',
   });
 
   const deliveryFee = delivery === 'express' ? 9.99 : 5.99;
 
-  const cartItems = items.map(i => ({
-    name: i.name,
-    quantity: i.quantity,
-    unitPrice: i.unitPrice,
-    image: i.image,
-  }));
+  const cartItems = prescriptionData
+    ? [{
+        name: `Prescription Order (${prescriptionData.id})`,
+        quantity: 1,
+        unitPrice: prescriptionData.estimatedPrice ?? 0,
+        image: prescriptionData.files[0]?.type === 'application/pdf'
+          ? undefined
+          : prescriptionData.files[0]?.dataUrl,
+      }]
+    : items.map(i => ({
+        name: i.name,
+        quantity: i.quantity,
+        unitPrice: i.unitPrice,
+        image: i.image,
+      }));
 
   const handlePlace = () => {
     setPlacing(true);
@@ -709,9 +732,42 @@ export const Checkout = () => {
     
     setTimeout(() => {
       const id = genOrderId();
+      const subtotal = cartItems.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
+      const tax = Math.round(subtotal * 0.08 * 100) / 100;
+      const now = new Date().toLocaleString('en-KE', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      });
+      const order: StoredOrder = {
+        id,
+        date: now,
+        items: cartItems.map((item) => ({
+          name: item.name,
+          quantity: item.quantity,
+          price: item.unitPrice,
+          image: item.image,
+        })),
+        total: subtotal + deliveryFee + tax,
+        estimatedDelivery: delivery === 'express' ? 'Same day' : '2-4 hours',
+        status: 'Processing',
+        shippingInfo: shipping,
+        paymentMethod: payMethod,
+        transactionId: 'TXN-' + id,
+        isPrescriptionOrder: !!prescriptionData,
+        prescriptionId: prescriptionData?.id ?? null,
+      };
+
+      saveOrder(order);
       setOrderId(id);
       setConfirmed(true);
-      clearCart();
+      if (!prescriptionData) {
+        clearCart();
+      } else {
+        clearCheckoutPrescriptionId();
+      }
       setPlacing(false);
       
       // Show success message based on payment method
@@ -722,6 +778,36 @@ export const Checkout = () => {
       }
     }, payMethod === 'M-Pesa' ? 4000 : 2500); // Longer delay for M-Pesa to simulate STK process
   };
+
+  if (!cartItems.length) {
+    return (
+      <div style={{ maxWidth: 760, margin: '0 auto', padding: '2rem 1rem', textAlign: 'center', fontFamily: "'DM Sans', sans-serif" }}>
+        <h1 style={{ fontFamily: "'Sora', sans-serif", fontSize: 24, fontWeight: 700, color: '#12251e', marginBottom: 10 }}>
+          Nothing to checkout yet
+        </h1>
+        <p style={{ fontSize: 14, color: '#64748b', marginBottom: 18 }}>
+          Add products to your cart or wait until a prescription request becomes available for payment.
+        </p>
+        <button
+          onClick={() => navigate('/products')}
+          style={{
+            height: 44,
+            border: 'none',
+            borderRadius: 12,
+            background: '#0d4f5c',
+            color: '#fff',
+            padding: '0 18px',
+            fontSize: 13,
+            fontWeight: 700,
+            cursor: 'pointer',
+            fontFamily: "'Sora', sans-serif",
+          }}
+        >
+          Browse Products
+        </button>
+      </div>
+    );
+  }
 
   if (confirmed) {
     return (
@@ -759,6 +845,19 @@ export const Checkout = () => {
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 300px', gap: 24, alignItems: 'start' }}>
         {/* Left: form */}
         <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 16, padding: '1.5rem' }}>
+          {prescriptionData ? (
+            <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 12, padding: '12px 14px', marginBottom: 20 }}>
+              <div style={{ fontSize: 12, color: '#1d4ed8', textTransform: 'uppercase', letterSpacing: '.08em', fontWeight: 700, marginBottom: 6 }}>
+                Prescription Checkout
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#0d4f5c', marginBottom: 4 }}>
+                {prescriptionData.id}
+              </div>
+              <div style={{ fontSize: 13, color: '#1e3a8a' }}>
+                This order was created from your approved prescription request and uses the pharmacist&apos;s estimated price.
+              </div>
+            </div>
+          ) : null}
           {step === 1 && (
             <StepShipping
               info={shipping} setInfo={setShipping}
