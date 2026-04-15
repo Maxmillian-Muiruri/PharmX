@@ -125,7 +125,7 @@ export default function TrackOrder() {
 
   // Mock order data - in real app, this would be fetched from API
   useEffect(() => {
-    const stored = getStoredOrderById(id);
+const stored = getStoredOrderById(id);
     setTimeout(() => {
       if (stored) {
         setOrder({
