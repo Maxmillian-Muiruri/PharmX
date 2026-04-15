@@ -11,7 +11,6 @@ import { Footer } from "../Footer";
 import { ChatBubble } from "../ChatBubble";
 import { BackToTop } from "../BackToTop";
 import { SearchIcon } from "lucide-react";
-import React from "react";
 
 export const LayoutWrapper = ({ children }: Readonly<TNodeChildrentType>) => {
   const queryClient = new QueryClient();
@@ -59,28 +58,22 @@ export const Error404Page = () => {
 
 export const AppLayout = () => {
   return (
-    <RootLayout
-      {...{
-        children: (
-          <React.Fragment>
-            <ScrollProgressBar />
-            <AnnouncementBar />
-            <div className="min-h-screen bg-slate-50 flex flex-col w-full">
-              <Header />
+    <RootLayout>
+      <ScrollProgressBar />
+      <AnnouncementBar />
+      <div className="min-h-screen bg-slate-50 flex flex-col w-full">
+        <Header />
 
-              <main className="w-full flex-1 p-4">
-                <Outlet />
-              </main>
+        <main className="w-full flex-1 p-4">
+          <Outlet />
+        </main>
 
-              <Footer />
-            </div>
+        <Footer />
+      </div>
 
-            <ChatBubble />
-            <BackToTop />
-          </React.Fragment>
-        ),
-      }}
-    />
+      <ChatBubble />
+      <BackToTop />
+    </RootLayout>
   );
 };
 
