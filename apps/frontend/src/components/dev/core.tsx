@@ -3,6 +3,9 @@ import type { TNodeChildrentType } from "../../types";
 import { APPContext } from "../../context";
 import { ROOT_URL_PREFIX } from "../../utils";
 import { useNavigate } from "react-router-dom";
+import { Header } from "../Header";
+import { Footer } from "../Footer";
+import { Outlet } from "react-router-dom";
 
 export const LayoutWrapper = ({ children }: Readonly<TNodeChildrentType>) => {
   const queryClient = new QueryClient();
@@ -17,6 +20,20 @@ export const LayoutWrapper = ({ children }: Readonly<TNodeChildrentType>) => {
         {children}
       </QueryClientProvider>
     </APPContext.Provider>
+  );
+};
+
+export const AppLayout = () => {
+  return (
+    <LayoutWrapper>
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-1">
+          <Outlet />
+        </main>
+        <Footer />
+      </div>
+    </LayoutWrapper>
   );
 };
 

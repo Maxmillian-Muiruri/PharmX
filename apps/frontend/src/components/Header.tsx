@@ -15,6 +15,7 @@ const navLinks = [
   { to: CART_URL, label: "Cart" },
   { to: ROOT_URL_PREFIX, label: "About" },
   { to: ROOT_URL_PREFIX, label: "Contact" },
+  { to: "/TrackOrder", label: "Track Order" },
 ];
 
 export function Header() {
