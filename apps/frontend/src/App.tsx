@@ -8,6 +8,8 @@ import {
   CHECKOUT_URL,
   ORDERS_URL,
   ORDERDETAIL_URL,
+  PRESCRIPTIONS_URL,
+  PRESCRIPTION_URL,
   PRODUCTLIST_URL,
   // ROOT_URL_PREFIX,
   SIGNUP_URL,
@@ -24,6 +26,8 @@ import { ProductDetail } from "./app/products/product/page";
 import { Cart } from "./app/cart/page";
 import { Checkout } from "./app/checkout/page";
 import MyOrders from "./app/my-orders/page";
+import UploadPrescription from "./app/prescription/page";
+import MyPrescriptions from "./app/prescriptions/page";
 import { ToastProvider } from "./context/ToastContext";
 import { CartProvider } from "./context/CartContext";
 
@@ -88,6 +92,18 @@ function App() {
         {
           path: CHECKOUT_URL,
           Component: Checkout,
+        },
+
+        // upload prescription
+        {
+          path: PRESCRIPTION_URL,
+          Component: UploadPrescription,
+        },
+
+        // my prescriptions
+        {
+          path: PRESCRIPTIONS_URL,
+          Component: MyPrescriptions,
         },
 
         // my-orders
