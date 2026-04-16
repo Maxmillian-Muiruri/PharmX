@@ -3,8 +3,12 @@ import { AppLayout, Error404Page, ErrorPage } from "./components/dev/core";
 import {
   AUTH_URL_PREFIX,
   CART_URL,
+  CHECKOUT_URL,
+  ORDERS_URL,
+  ORDERDETAIL_URL,
+  PRESCRIPTIONS_URL,
+  PRESCRIPTION_URL,
   PRODUCTLIST_URL,
-  // ROOT_URL_PREFIX,
   SIGNUP_URL,
 } from "./utils";
 import { Auth } from "./app/auth/page";
@@ -17,6 +21,10 @@ import { ProductList } from "./app/products/page";
 import ProductsListLayout from "./app/products/layout";
 import { ProductDetail } from "./app/products/product/page";
 import { Cart } from "./app/cart/page";
+import { Checkout } from "./app/checkout/page";
+import MyOrders from "./app/my-orders/page";
+import UploadPrescription from "./app/prescription/page";
+import MyPrescriptions from "./app/prescriptions/page";
 import { ToastProvider } from "./context/ToastContext";
 import { CartProvider } from "./context/CartContext";
 import { TrackOrder } from "./trackorder/OrderTracking";
@@ -76,12 +84,38 @@ function App() {
           Component: Cart,
         },
 
+        // checkout
+        {
+          path: CHECKOUT_URL,
+          Component: Checkout,
+        },
+
+        // upload prescription
+        {
+          path: PRESCRIPTION_URL,
+          Component: UploadPrescription,
+        },
+
+        // my prescriptions
+        {
+          path: PRESCRIPTIONS_URL,
+          Component: MyPrescriptions,
+        },
+
+        // my-orders
+        {
+          path: ORDERS_URL,
+          Component: MyOrders,
+        },
+
         // contact
         {
           path: "/contact",
           Component: ContactPage,
         },
-  {
+
+        // track order
+        {
           path: "/TrackOrder",
           Component: TrackOrder,
         },
