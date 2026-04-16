@@ -513,167 +513,6 @@ function StepReview({
   );
 }
 
-// ─── Order Confirmed ──────────────────────────────────────────────────────────
-
-function OrderConfirmed({
-  orderId,
-  items,
-  shipping,
-  payMethod,
-  delivery,
-  onContinue,
-  onTrack,
-}: {
-  orderId: string;
-  items: Array<{ name: string; quantity: number; unitPrice: number }>;
-  shipping: ShippingInfo;
-  payMethod: PaymentMethod;
-  delivery: DeliveryOption;
-  onContinue: () => void;
-  onTrack: () => void;
-}) {
-  const subtotal      = items.reduce((s, i) => s + i.unitPrice * i.quantity, 0);
-  const deliveryFee   = delivery === 'express' ? 9.99 : 5.99;
-  const tax           = Math.round(subtotal * 0.08 * 100) / 100;
-  const total         = subtotal + deliveryFee + tax;
-  const txnId         = 'TXN-' + orderId;
-  const now           = new Date().toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
-
-  return (
-    <div style={{ maxWidth: 680, margin: '0 auto', padding: '2rem 1rem', fontFamily: "'DM Sans', sans-serif" }}>
-      {/* Success header */}
-      <div style={{ textAlign: 'center', marginBottom: 24 }}>
-        <div style={{ width: 60, height: 60, background: '#0d4f5c', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M5 13l4 4L19 7" /></svg>
-        </div>
-        <h1 style={{ fontFamily: "'Sora', sans-serif", fontSize: 24, fontWeight: 700, color: '#12251e', marginBottom: 6 }}>Order Confirmed!</h1>
-        <p style={{ fontSize: 13, color: '#64748b' }}>
-          Thank you for your order. We've sent a confirmation email to <strong style={{ color: '#0d4f5c' }}>{shipping.email}</strong>
-        </p>
-      </div>
-
-      {/* Order ID + actions */}
-      <div style={{ border: '1px solid #e2e8f0', borderRadius: 12, padding: '14px 20px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
-        <div>
-          <div style={{ fontSize: 11, color: '#64748b', marginBottom: 2 }}>Order Number</div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: '#0d4f5c', fontFamily: "'Sora', sans-serif" }}>{orderId}</div>
-        </div>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button style={{ height: 34, padding: '0 14px', border: '1px solid #e2e8f0', borderRadius: 8, background: '#fff', fontSize: 12, color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>
-            Download Receipt
-          </button>
-          <button onClick={onTrack} style={{ height: 34, padding: '0 14px', border: 'none', borderRadius: 8, background: '#0d4f5c', color: '#fff', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
-            View my Orders
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-          </button>
-        </div>
-      </div>
-
-      {/* Status cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 20 }}>
-        {[
-          { icon: '', title: 'Order Placed', value: now },
-          { icon: '', title: 'Estimated Delivery', value: delivery === 'express' ? 'Same day' : '2-4 hours' },
-          { icon: '', title: 'Payment Status', value: 'Confirmed', green: true },
-        ].map(card => (
-          <div key={card.title} style={{ border: '1px solid #e2e8f0', borderRadius: 12, padding: '14px 12px', textAlign: 'center', background: '#fff' }}>
-            <div style={{ fontSize: 22, marginBottom: 6 }}>{card.icon}</div>
-            <div style={{ fontSize: 11, color: '#64748b', marginBottom: 3 }}>{card.title}</div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: card.green ? '#15803d' : '#12251e' }}>{card.value}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Order details */}
-      <div style={{ border: '1px solid #e2e8f0', borderRadius: 12, padding: '16px 20px', background: '#fff', marginBottom: 16 }}>
-        <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, color: '#0d4f5c', marginBottom: 12 }}>Order Details</h3>
-        {items.map((item, i) => (
-          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 4 }}>
-            <span style={{ color: '#12251e', fontWeight: 500 }}>{item.name}</span>
-            <span style={{ color: '#0d4f5c', fontWeight: 600 }}>KES{(item.unitPrice * item.quantity).toFixed(2)}</span>
-          </div>
-        ))}
-        <div style={{ borderTop: '1px solid #f1f5f9', marginTop: 10, paddingTop: 10 }}>
-          {[
-            { label: 'Subtotal',     value: `KES${subtotal.toFixed(2)}` },
-            { label: 'Delivery Fee', value: `KES${deliveryFee.toFixed(2)}` },
-            { label: 'Tax',          value: `KES${tax.toFixed(2)}` },
-          ].map(row => (
-            <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#64748b', marginBottom: 3 }}>
-              <span>{row.label}</span><span>{row.value}</span>
-            </div>
-          ))}
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: "'Sora', sans-serif", fontSize: 15, fontWeight: 700, color: '#0d4f5c', marginTop: 8 }}>
-            <span>Total</span><span style={{ color: '#22c55e' }}>KES{total.toFixed(2)}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Delivery + Payment info */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-        <div style={{ border: '1px solid #e2e8f0', borderRadius: 12, padding: '14px 16px', background: '#fff' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0d4f5c" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" /><circle cx="12" cy="10" r="3" /></svg>
-            <span style={{ fontSize: 12, fontWeight: 600, color: '#0d4f5c' }}>Delivery Address</span>
-          </div>
-          <div style={{ fontSize: 13, color: '#12251e', fontWeight: 600 }}>{shipping.firstName} {shipping.lastName}</div>
-          <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{shipping.street}</div>
-          <div style={{ fontSize: 12, color: '#64748b' }}>{shipping.city}, {shipping.state} {shipping.zip}</div>
-          <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}> {shipping.phone}</div>
-          <div style={{ fontSize: 12, color: '#64748b' }}>{shipping.email}</div>
-        </div>
-        <div style={{ border: '1px solid #e2e8f0', borderRadius: 12, padding: '14px 16px', background: '#fff' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0d4f5c" strokeWidth="2"><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg>
-            <span style={{ fontSize: 12, fontWeight: 600, color: '#0d4f5c' }}>Payment Information</span>
-          </div>
-          <div style={{ fontSize: 12, color: '#64748b', marginBottom: 2 }}>Payment Method</div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#12251e', marginBottom: 6 }}>{payMethod}</div>
-          <div style={{ fontSize: 12, color: '#64748b', marginBottom: 2 }}>Transaction ID</div>
-          <div style={{ fontSize: 12, color: '#12251e', marginBottom: 6 }}>{txnId}</div>
-          <div style={{ fontSize: 12, color: '#64748b', marginBottom: 2 }}>Payment Status</div>
-          <span style={{ fontSize: 11, background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: 999, fontWeight: 600 }}> Payment Successful</span>
-        </div>
-      </div>
-
-      {/* What happens next */}
-      <div style={{ border: '1px solid #e2e8f0', borderRadius: 12, padding: '16px 20px', background: '#f8fafc', marginBottom: 20 }}>
-        <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, color: '#0d4f5c', marginBottom: 12 }}>What Happens Next?</h3>
-        {[
-          'Our pharmacist will verify your order within 10 minutes',
-          'Your medicines will be carefully prepared and packaged',
-          'Track your delivery in real-time once it\'s dispatched',
-          'Receive your order at your doorstep within 2-4 hours',
-        ].map((step, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, fontSize: 13, color: '#374151' }}>
-            <span style={{ width: 20, height: 20, minWidth: 20, background: '#0d4f5c', color: '#fff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700 }}>
-              {i + 1}
-            </span>
-            {step}
-          </div>
-        ))}
-      </div>
-
-      {/* Bottom actions */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: 12 }}>
-        <button onClick={onContinue} style={{ height: 42, padding: '0 20px', border: '1px solid #e2e8f0', borderRadius: 10, background: '#fff', fontSize: 13, color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" /></svg>
-          Continue Shopping
-        </button>
-        <button onClick={onTrack} style={{ height: 42, padding: '0 20px', background: '#0d4f5c', color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-          View My Orders
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-        </button>
-      </div>
-
-      <div style={{ textAlign: 'center', marginTop: 16, fontSize: 12, color: '#64748b' }}>
-        Need help with your order? Contact our support team at +1 (234) 567-890 or email <a href="mailto:support@pharmacienouni.com" style={{ color: '#0d4f5c' }}>support@pharmacienouni.com</a>
-      </div>
-    </div>
-  );
-}
-
 // ─── Checkout (main) ──────────────────────────────────────────────────────────
 
 export const Checkout = () => {
@@ -684,8 +523,6 @@ export const Checkout = () => {
 
   const [step,     setStep]     = useState<Step>(1);
   const [placing,  setPlacing]  = useState(false);
-  const [confirmed,setConfirmed]= useState(false);
-  const [orderId,  setOrderId]  = useState('');
 
   const [delivery, setDelivery] = useState<DeliveryOption>('standard');
   const [payMethod,setPayMethod]= useState<PaymentMethod>(null);
@@ -720,7 +557,7 @@ export const Checkout = () => {
         image: i.image,
       }));
 
-  const handlePlace = () => {
+const handlePlace = () => {
     setPlacing(true);
     
     // Show appropriate processing message based on payment method
@@ -761,8 +598,6 @@ export const Checkout = () => {
       };
 
       saveOrder(order);
-      setOrderId(id);
-      setConfirmed(true);
       if (!prescriptionData) {
         clearCart();
       } else {
@@ -776,7 +611,10 @@ export const Checkout = () => {
       } else {
         addToast({ type: 'success', message: 'Payment processed successfully!', duration: 3000 });
       }
-    }, payMethod === 'M-Pesa' ? 4000 : 2500); // Longer delay for M-Pesa to simulate STK process
+
+      // Redirect to orders page after successful payment
+      navigate('/orders');
+    }, payMethod === 'M-Pesa' ? 4000 : 2500);
   };
 
   if (!cartItems.length) {
@@ -806,20 +644,6 @@ export const Checkout = () => {
           Browse Products
         </button>
       </div>
-    );
-  }
-
-  if (confirmed) {
-    return (
-      <OrderConfirmed
-        orderId={orderId}
-        items={cartItems}
-        shipping={shipping}
-        payMethod={payMethod}
-        delivery={delivery}
-        onContinue={() => navigate('/products')}
-        onTrack={() => navigate('/orders')}
-      />
     );
   }
 
