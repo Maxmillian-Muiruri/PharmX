@@ -91,6 +91,7 @@ function OrderCard({ order }: { order: Order }) {
         {/* Action buttons — pushed right */}
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
           <button
+            onClick={() => navigate(`/track/${order.id}`)}
             style={{
               border: '1px solid #e2e8f0',
               borderRadius: 8,

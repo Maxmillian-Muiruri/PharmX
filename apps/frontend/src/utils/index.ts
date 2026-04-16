@@ -18,6 +18,10 @@ export const ORDERS_URL = "/orders";
 
 export const ORDERDETAIL_URL = "/orders/:id";
 
+export const TRACK_URL = "/track";
+
+export const TRACK_ORDER_URL = "/track/:id";
+
 export const CART_URL = "/cart";
 
 export const navLinks = [
@@ -25,5 +29,7 @@ export const navLinks = [
   { to: PRODUCTLIST_URL, label: "Products" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
+  { to: ORDERS_URL, label: "My Orders" },
+  { to: TRACK_URL, label: "Track Order" },
   { to: CART_URL, label: "Cart" },
 ];

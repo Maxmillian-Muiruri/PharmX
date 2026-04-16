@@ -368,7 +368,10 @@ function StepPayment({
 // ─── Step 3: Review ───────────────────────────────────────────────────────────
 
 function StepReview({
-  items, onBack, onPlace, placing,
+  items,
+  onBack,
+  onPlace,
+  placing,
 }: {
   items: Array<{ name: string; quantity: number; unitPrice: number; image?: string }>;
   onBack: () => void;
@@ -412,7 +415,6 @@ function StepReview({
           I agree to the <a href="#" style={{ color: '#0d4f5c' }}>Terms and Conditions</a> and <a href="#" style={{ color: '#0d4f5c' }}>Privacy Policy</a>
         </label>
         <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#374151', cursor: 'pointer' }}>
-          <input type="checkbox" checked={newsletter} onChange={e => setNewsletter(e.target.checked)} style={{ accentColor: '#0d4f5c' }} />
           Subscribe to our newsletter for health tips and exclusive offers
         </label>
       </div>
@@ -445,17 +447,6 @@ function StepReview({
     </div>
   );
 }
-
-// ─── Order Confirmed ──────────────────────────────────────────────────────────
-
-function OrderConfirmed({
-  orderId,
-  items,
-  shipping,
-  payMethod,
-  delivery,
-  onContinue,
-  onTrack,
 }: {
   orderId: string;
   items: Array<{ name: string; quantity: number; unitPrice: number }>;
@@ -607,6 +598,8 @@ function OrderConfirmed({
   );
 }
 
+=======
+>>>>>>> f609b7e (feat(frontend): add order tracking page and routes)
 // ─── Checkout (main) ──────────────────────────────────────────────────────────
 
 export const Checkout = () => {
@@ -616,8 +609,6 @@ export const Checkout = () => {
 
   const [step,     setStep]     = useState<Step>(1);
   const [placing,  setPlacing]  = useState(false);
-  const [confirmed,setConfirmed]= useState(false);
-  const [orderId,  setOrderId]  = useState('');
 
   const [delivery, setDelivery] = useState<DeliveryOption>('standard');
   const [payMethod,setPayMethod]= useState<PaymentMethod>(null);
@@ -638,28 +629,128 @@ export const Checkout = () => {
 
   const handlePlace = () => {
     setPlacing(true);
-    // Show processing toast
-    addToast({ type: 'success', message: 'Processing your payment...', duration: 2000 });
+
+    // Show appropriate processing message based on payment method
+    if (payMethod === 'M-Pesa') {
+      addToast({ type: 'info', message: 'Sending STK push to your phone...', duration: 3000 });
+    } else {
+      addToast({ type: 'success', message: 'Processing your payment...', duration: 2000 });
+    }
+
     setTimeout(() => {
       const id = genOrderId();
-      setOrderId(id);
-      setConfirmed(true);
-      clearCart();
+      const subtotal = cartItems.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
+      const tax = Math.round(subtotal * 0.08 * 100) / 100;
+      const now = new Date().toLocaleString('en-KE', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      });
+      const order: StoredOrder = {
+        id,
+        date: now,
+        items: cartItems.map((item) => ({
+          name: item.name,
+          quantity: item.quantity,
+          price: item.unitPrice,
+          image: item.image,
+        })),
+        total: subtotal + deliveryFee + tax,
+        estimatedDelivery: delivery === 'express' ? 'Same day' : '2-4 hours',
+        status: 'Processing',
+        shippingInfo: shipping,
+        paymentMethod: payMethod,
+        transactionId: 'TXN-' + id,
+        isPrescriptionOrder: !!prescriptionData,
+        prescriptionId: prescriptionData?.id ?? null,
+      };
+
+      saveOrder(order);
+      if (!prescriptionData) {
+        clearCart();
+      } else {
+        clearCheckoutPrescriptionId();
+      }
       setPlacing(false);
-    }, 2500);
+
+      // Show success message based on payment method
+      if (payMethod === 'M-Pesa') {
+        addToast({
+          type: 'success',
+          message: 'M-Pesa payment successful!',
+          duration: 3000
+        });
+      } else {
+        addToast({
+          type: 'success',
+          message: 'Payment processed successfully!',
+          duration: 3000
+        });
+      }
+
+      // Redirect to orders page after successful payment
+      navigate('/orders');
+    }, payMethod === 'M-Pesa' ? 4000 : 2500);
   };
 
-  if (confirmed) {
+      saveOrder(order);
+      if (!prescriptionData) {
+        clearCart();
+      } else {
+        clearCheckoutPrescriptionId();
+      }
+      setPlacing(false);
+
+      // Show success message based on payment method
+      if (payMethod === 'M-Pesa') {
+        addToast({
+          type: 'success',
+          message: 'M-Pesa payment successful!',
+          duration: 3000
+        });
+      } else {
+        addToast({
+          type: 'success',
+          message: 'Payment processed successfully!',
+          duration: 3000
+        });
+      }
+
+      // Redirect to orders page after successful payment
+      navigate('/orders');
+    }, payMethod === 'M-Pesa' ? 4000 : 2500);
+  };
+
+  if (!cartItems.length) {
     return (
-      <OrderConfirmed
-        orderId={orderId}
-        items={cartItems}
-        shipping={shipping}
-        payMethod={payMethod}
-        delivery={delivery}
-        onContinue={() => navigate('/products')}
-        onTrack={() => navigate('/orders')}
-      />
+      <div style={{ maxWidth: 760, margin: '0 auto', padding: '2rem 1rem', textAlign: 'center', fontFamily: "'DM Sans', sans-serif" }}>
+        <h1 style={{ fontFamily: "'Sora', sans-serif", fontSize: 24, fontWeight: 700, color: '#12251e', marginBottom: 10 }}>
+          Nothing to checkout yet
+        </h1>
+        <p style={{ fontSize: 14, color: '#64748b', marginBottom: 18 }}>
+          Add products to your cart or wait until a prescription request becomes available for payment.
+        </p>
+        <button
+          onClick={() => navigate('/products')}
+          style={{
+            height: 44,
+            border: 'none',
+            borderRadius: 12,
+            background: '#0d4f5c',
+            color: '#fff',
+            padding: '0 18px',
+            fontSize: 13,
+            fontWeight: 700,
+            cursor: 'pointer',
+            fontFamily: "'Sora', sans-serif",
+          }}
+        >
+          Browse Products
+        </button>
+      </div>
+>>>>>>> f609b7e (feat(frontend): add order tracking page and routes)
     );
   }
 
