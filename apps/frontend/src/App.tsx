@@ -8,10 +8,11 @@ import {
   CHECKOUT_URL,
   ORDERS_URL,
   ORDERDETAIL_URL,
-PRESCRIPTIONS_URL,
+  PRESCRIPTIONS_URL,
   PRESCRIPTION_URL,
   PRODUCTLIST_URL,
   SIGNUP_URL,
+  TRACK_URL,
 } from "./utils";
 import { Auth } from "./app/auth/page";
 import { HomePage } from "./app/page";
@@ -27,6 +28,7 @@ import { Checkout } from "./app/checkout/page";
 import MyOrders from "./app/my-orders/page";
 import UploadPrescription from "./app/prescription/page";
 import MyPrescriptions from "./app/prescriptions/page";
+import { TrackOrder } from "./trackorder/OrderTracking";
 import { ToastProvider } from "./context/ToastContext";
 import { CartProvider } from "./context/CartContext";
 
@@ -111,7 +113,17 @@ function App() {
           Component: MyOrders,
         },
 
-        // track order
+        // track order (public - by order number)
+        {
+          path: TRACK_URL,
+          Component: TrackOrder,
+        },
+        {
+          path: "/track/:id",
+          Component: TrackOrder,
+        },
+
+        // order detail (for logged in users - by ID in URL)
         {
           path: ORDERDETAIL_URL,
           lazy: () => import('./app/orders/[id]/page').then(module => ({ Component: module.default })),
