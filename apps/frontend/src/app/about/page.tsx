@@ -182,6 +182,32 @@ export function AboutPage() {
             ))}
           </div>
         </div>
+
+        <Card className="bg-cyan-50">
+          <CardContent className="p-8 text-center">
+            <h3 className="text-2xl mb-6 text-gray-900 font-bold">
+              Licensed & Certified
+            </h3>
+            <div className="flex flex-wrap justify-center items-center gap-8">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🏥</span>
+                <span className="text-gray-700">FDA Registered</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">✅</span>
+                <span className="text-gray-700">Licensed Pharmacy</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🔐</span>
+                <span className="text-gray-700">HIPAA Compliant</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">⭐</span>
+                <span className="text-gray-700">ISO 9001 Certified</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

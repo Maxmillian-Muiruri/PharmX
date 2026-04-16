@@ -1,4 +1,6 @@
+import { useContext } from "react";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import { APPContext } from "./context";
 import { AppLayout, Error404Page, ErrorPage } from "./components/dev/core";
 import {
   AUTH_URL_PREFIX,
@@ -6,7 +8,7 @@ import {
   CHECKOUT_URL,
   ORDERS_URL,
   ORDERDETAIL_URL,
-  PRESCRIPTIONS_URL,
+PRESCRIPTIONS_URL,
   PRESCRIPTION_URL,
   PRODUCTLIST_URL,
   SIGNUP_URL,
@@ -27,9 +29,10 @@ import UploadPrescription from "./app/prescription/page";
 import MyPrescriptions from "./app/prescriptions/page";
 import { ToastProvider } from "./context/ToastContext";
 import { CartProvider } from "./context/CartContext";
-import { TrackOrder } from "./trackorder/OrderTracking";
 
 function App() {
+  const {} = useContext(APPContext);
+
   const router = createBrowserRouter([
     {
       errorElement: <ErrorPage />,
@@ -108,17 +111,18 @@ function App() {
           Component: MyOrders,
         },
 
+        // track order
+        {
+          path: ORDERDETAIL_URL,
+          lazy: () => import('./app/orders/[id]/page').then(module => ({ Component: module.default })),
+        },
+
         // contact
         {
           path: "/contact",
           Component: ContactPage,
         },
 
-        // track order
-        {
-          path: "/TrackOrder",
-          Component: TrackOrder,
-        },
         // Root level 404
         {
           Component: Error404Page,

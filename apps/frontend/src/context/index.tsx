@@ -1,15 +1,27 @@
-import { createContext,  } from "react";
+import React from "react"
+import ReactDOM from "react-dom/client"
+import { createBrowserRouter, RouterProvider } from "react-router-dom"
+import RootLayout from "../app/layout"
+import { HomePage } from "../app/page"
+import { ProductList } from "../app/products/page"
+import { ProductDetail } from "../app/products/product/page"
+import type { TAppContextType } from "../types"
 
-import type { TAppContextType, TNodeChildrentType } from "../types";
+export const APPContext = React.createContext<TAppContextType>({})
 
-export const APPContext = createContext<Partial<TAppContextType>>({});
+const router = createBrowserRouter([
+  {
+    element: <RootLayout />,
+    children: [
+      { path: "/", element: <HomePage /> },
+      { path: "/products", element: <ProductList /> },
+      { path: "/product/:id", element: <ProductDetail /> },
+    ],
+  },
+])
 
-export const APPContextProvider = ({ children }: TNodeChildrentType) => {
-
-
-  return (
-    <APPContext.Provider value={{}}>
-      {children}
-    </APPContext.Provider>
-  );
-};
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <RouterProvider router={router} />
+  </React.StrictMode>
+)

@@ -12,6 +12,10 @@ export const PRODUCTDETAIL_URL = "/products/:id";
 
 export const CHECKOUT_URL = "/checkout";
 
+export const PRESCRIPTION_URL = "/prescription";
+
+export const PRESCRIPTIONS_URL = "/prescriptions";
+
 export const PROFILE_URL = "/profile";
 
 export const ORDERS_URL = "/orders";
@@ -19,3 +23,14 @@ export const ORDERS_URL = "/orders";
 export const ORDERDETAIL_URL = "/orders/:id";
 
 export const CART_URL = "/cart";
+
+export const navLinks = [
+  { to: ROOT_URL_PREFIX, label: "Home" },
+  { to: PRODUCTLIST_URL, label: "Products" },
+  { to: PRESCRIPTION_URL, label: "Upload Prescription" },
+  { to: PRESCRIPTIONS_URL, label: "My Prescriptions" },
+  { to: "/about", label: "About" },
+  { to: "/contact", label: "Contact" },
+  { to: ORDERS_URL, label: "My Orders" },
+  { to: CART_URL, label: "Cart" },
+];
