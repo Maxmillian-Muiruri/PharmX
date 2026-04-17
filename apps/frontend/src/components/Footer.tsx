@@ -189,7 +189,7 @@ export function Footer() {
                   <a
                     href="#"
                     className="text-cyan-100 hover:text-cyan-300 transition-colors"
-                  >
+                  >äääääääääääää
                     Help Center
                   </a>
                 </li>

@@ -2,7 +2,7 @@ export type TNodeChildrentType = {
   children?: React.ReactNode;
 };
 
-export type TAppContextType = {};
+export type TAppContextType = object;
 
 export type Product = {
   id: string | number;

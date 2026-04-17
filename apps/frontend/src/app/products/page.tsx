@@ -29,6 +29,7 @@ interface Product {
   reviewCount?: number;
 }
 
+
 const allProducts: Product[] = [
   {
     id: "1",
@@ -445,8 +446,7 @@ export const ProductList = () => {
       duration: 3000
     });
   };
-
-  const FilterSidebar = () => (
+const FilterSidebar = () => (
     <div className="space-y-6">
       <div>
         <div className="flex items-center justify-between mb-4">
@@ -757,4 +757,5 @@ export const ProductList = () => {
       </div>
     </div>
   );
+  
 };

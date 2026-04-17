@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { NavLink } from "react-router-dom";
-import { CART_URL, ROOT_URL_PREFIX, navLinks } from "../utils";
+import { NavLink, useNavigate } from "react-router-dom";
+import { CART_URL, ROOT_URL_PREFIX, SIGNUP_URL, navLinks } from "../utils";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../hooks/useAuth";
 import { ReusableSearchBar } from "./dev/core";
 
 type HeaderProps = {
@@ -11,9 +12,12 @@ type HeaderProps = {
 
 export function Header({ cartItemCount, onCartClick }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState<boolean>(false);
   const [atBottom, setAtBottom] = useState(false);
   const [passedHowItWorks, setPassedHowItWorks] = useState(false);
   const { getItemCount } = useCart();
+  const { isLoggedIn, user, logout } = useAuth();
+  const navigate = useNavigate();
 
   // Use context value if props not provided
   const actualCartItemCount = cartItemCount ?? getItemCount();
@@ -95,28 +99,99 @@ export function Header({ cartItemCount, onCartClick }: HeaderProps) {
 
             {/* Actions */}
             <div className="flex items-center gap-4 shrink-0">
-              <button
-                className={`items-center gap-2 text-sm transition-colors hidden md:flex ${
-                  atBottom || passedHowItWorks
-                    ? "text-white/70 hover:text-white"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              {/* Account Button with Dropdown */}
+              <div className="relative hidden md:block">
+                <button
+                  onClick={() => setIsAccountMenuOpen(!isAccountMenuOpen)}
+                  className={`items-center gap-2 text-sm transition-colors flex ${
+                    atBottom || passedHowItWorks
+                      ? "text-white/70 hover:text-white"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-                Account
-              </button>
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                  {isLoggedIn ? user?.fullName || "Account" : "Account"}
+                </button>
+
+                {/* Dropdown Menu */}
+                {isAccountMenuOpen && (
+                  <div className={`absolute right-0 mt-2 w-48 rounded-lg shadow-lg z-50 ${
+                    atBottom || passedHowItWorks
+                      ? "bg-slate-800 border border-slate-700"
+                      : "bg-white border border-slate-200"
+                  }`}>
+                    {isLoggedIn ? (
+                      <>
+                        <button
+                          onClick={() => {
+                            navigate("/my-orders");
+                            setIsAccountMenuOpen(false);
+                          }}
+                          className={`w-full text-left px-4 py-3 text-sm transition-colors ${
+                            atBottom || passedHowItWorks
+                              ? "text-white hover:bg-slate-700"
+                              : "text-slate-900 hover:bg-slate-50"
+                          }`}
+                        >
+                          My Orders
+                        </button>
+                        <button
+                          onClick={() => {
+                            navigate("/prescriptions");
+                            setIsAccountMenuOpen(false);
+                          }}
+                          className={`w-full text-left px-4 py-3 text-sm border-t transition-colors ${
+                            atBottom || passedHowItWorks
+                              ? "border-slate-700 text-white hover:bg-slate-700"
+                              : "border-slate-200 text-slate-900 hover:bg-slate-50"
+                          }`}
+                        >
+                          My Prescriptions
+                        </button>
+                        <button
+                          onClick={() => {
+                            logout();
+                            setIsAccountMenuOpen(false);
+                          }}
+                          className={`w-full text-left px-4 py-3 text-sm border-t font-medium transition-colors ${
+                            atBottom || passedHowItWorks
+                              ? "border-slate-700 text-red-400 hover:bg-slate-700"
+                              : "border-slate-200 text-red-600 hover:bg-slate-50"
+                          }`}
+                        >
+                          Logout
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          navigate(SIGNUP_URL);
+                          setIsAccountMenuOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-3 text-sm transition-colors ${
+                          atBottom || passedHowItWorks
+                            ? "text-white hover:bg-slate-700"
+                            : "text-slate-900 hover:bg-slate-50"
+                        }`}
+                      >
+                        Sign Up
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
 
               {onCartClick ? (
                 <button
@@ -176,28 +251,30 @@ export function Header({ cartItemCount, onCartClick }: HeaderProps) {
                 </NavLink>
               )}
 
-              <button
-                className={`lg:hidden transition-colors ${
-                  atBottom || passedHowItWorks
-                    ? "text-white/70 hover:text-white"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-              >
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              <div className="relative lg:hidden">
+                <button
+                  className={`transition-colors ${
+                    atBottom || passedHowItWorks
+                      ? "text-white/70 hover:text-white"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-              </button>
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6h16M4 12h16M4 18h16"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -232,6 +309,51 @@ export function Header({ cartItemCount, onCartClick }: HeaderProps) {
                   </li>
                 ))}
               </ul>
+
+              {/* Account section in mobile menu */}
+              {isLoggedIn && (
+                <div className="mt-4 pt-4 border-t border-slate-200 space-y-2">
+                  <button
+                    onClick={() => {
+                      navigate("/my-orders");
+                      setIsMenuOpen(false);
+                    }}
+                    className={`w-full text-left py-2 text-sm transition-colors ${
+                      atBottom || passedHowItWorks
+                        ? "text-white/70 hover:text-white"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    My Orders
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigate("/prescriptions");
+                      setIsMenuOpen(false);
+                    }}
+                    className={`w-full text-left py-2 text-sm transition-colors ${
+                      atBottom || passedHowItWorks
+                        ? "text-white/70 hover:text-white"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    My Prescriptions
+                  </button>
+                  <button
+                    onClick={() => {
+                      logout();
+                      setIsMenuOpen(false);
+                    }}
+                    className={`w-full text-left py-2 text-sm font-medium transition-colors ${
+                      atBottom || passedHowItWorks
+                        ? "text-red-400 hover:text-red-300"
+                        : "text-red-600 hover:text-red-700"
+                    }`}
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
             </nav>
           )}
         </div>
