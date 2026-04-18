@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, lazy, Suspense } from "react";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { APPContext } from "./context";
 import { AppLayout, Error404Page, ErrorPage } from "./components/dev/core";
@@ -33,6 +33,18 @@ import { TrackOrder } from "./trackorder/OrderTracking";
 import ProfilePage from "./app/profile/page";
 import { ToastProvider } from "./context/ToastContext";
 import { CartProvider } from "./context/CartContext";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+
+function OrderDetailWrapper() {
+  const OrderDetail = lazy(() => import('./app/orders/[id]/page'));
+  return (
+    <ProtectedRoute>
+      <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
+        <OrderDetail />
+      </Suspense>
+    </ProtectedRoute>
+  );
+}
 
 function App() {
   const {} = useContext(APPContext);
@@ -94,31 +106,51 @@ function App() {
         // checkout
         {
           path: CHECKOUT_URL,
-          Component: Checkout,
+          Component: () => (
+            <ProtectedRoute>
+              <Checkout />
+            </ProtectedRoute>
+          ),
         },
 
         // profile
         {
           path: PROFILE_URL,
-          Component: ProfilePage,
+          Component: () => (
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          ),
         },
 
         // upload prescription
         {
           path: PRESCRIPTION_URL,
-          Component: UploadPrescription,
+          Component: () => (
+            <ProtectedRoute>
+              <UploadPrescription />
+            </ProtectedRoute>
+          ),
         },
 
         // my prescriptions
         {
           path: PRESCRIPTIONS_URL,
-          Component: MyPrescriptions,
+          Component: () => (
+            <ProtectedRoute>
+              <MyPrescriptions />
+            </ProtectedRoute>
+          ),
         },
 
         // my-orders
         {
           path: ORDERS_URL,
-          Component: MyOrders,
+          Component: () => (
+            <ProtectedRoute>
+              <MyOrders />
+            </ProtectedRoute>
+          ),
         },
 
 // track order (public - by order number)
@@ -134,7 +166,7 @@ function App() {
         // order detail (for logged in users - by ID in URL)
         {
           path: ORDERDETAIL_URL,
-          lazy: () => import('./app/orders/[id]/page').then(module => ({ Component: module.default })),
+          Component: OrderDetailWrapper,
         },
 
         // contact
