@@ -60,20 +60,20 @@ const SelectContent = React.forwardRef<
 SelectContent.displayName = "SelectContent"
 
 const SelectItem = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & { value?: string }
+  HTMLOptionElement,
+  React.OptionHTMLAttributes<HTMLOptionElement>
 >(({ className, children, value, ...props }, ref) => (
-  <div
+  <option
     ref={ref}
     className={cn(
       "px-3 py-2 cursor-pointer hover:bg-slate-100",
       className
     )}
-    data-value={value}
+    value={value}
     {...props}
   >
     {children}
-  </div>
+  </option>
 ))
 SelectItem.displayName = "SelectItem"
 

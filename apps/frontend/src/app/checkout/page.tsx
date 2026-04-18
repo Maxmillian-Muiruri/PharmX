@@ -258,9 +258,11 @@ function StepShipping({
       <div style={{ marginBottom: 14 }}>
         <Field label="Street Address" value={info.street} onChange={set('street')} required />
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
         <Field label="City"     value={info.city}  onChange={set('city')}  required />
         <Field label="State"    value={info.state} onChange={set('state')} required />
+      </div>
+      <div style={{ marginBottom: 20 }}>
         <Field label="ZIP Code" value={info.zip}   onChange={set('zip')}   required />
       </div>
 
@@ -385,11 +387,12 @@ function StepPayment({
       {payMethod === 'M-Pesa' && (
         <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{
-            background: '#f0f9ff',
-            border: '1px solid #0ea5e9',
-            borderRadius: 8,
-            padding: '12px',
-            marginBottom: 8
+            background: '#fff',
+            border: '1px solid #e2e8f0',
+            borderRadius: 16,
+            padding: '1rem',
+            position: 'sticky',
+            top: 16
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
               <div style={{ width: 24, height: 24, background: '#10b981', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -843,15 +846,15 @@ export const Checkout = () => {
   }
 
   return (
-    <div style={{ maxWidth: 980, margin: '0 auto', padding: '1.5rem 1rem 3rem', fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ maxWidth: 980, margin: '0 auto', padding: '1rem 0.75rem 2rem', fontFamily: "'DM Sans', sans-serif" }}>
       {/* Page header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, color: '#64748b', fontSize: 13, fontFamily: 'inherit' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 5l-7 7 7 7" /></svg>
             Back to Shop
           </button>
-          <h1 style={{ fontFamily: "'Sora', sans-serif", fontSize: 24, fontWeight: 700, color: '#12251e' }}>Checkout</h1>
+          <h1 style={{ fontFamily: "'Sora', sans-serif", fontSize: 20, fontWeight: 700, color: '#12251e' }}>Checkout</h1>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: '#64748b' }}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0d4f5c" strokeWidth="2"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 018 0v4" /></svg>
@@ -861,9 +864,9 @@ export const Checkout = () => {
 
       <StepIndicator current={step} />
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 300px', gap: 24, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr)', gap: 24, alignItems: 'start' }}>
         {/* Left: form */}
-        <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 16, padding: '1.5rem' }}>
+        <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 16, padding: '1rem' }}>
           {prescriptionData ? (
             <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 12, padding: '12px 14px', marginBottom: 20 }}>
               <div style={{ fontSize: 12, color: '#1d4ed8', textTransform: 'uppercase', letterSpacing: '.08em', fontWeight: 700, marginBottom: 6 }}>
