@@ -176,9 +176,17 @@ const MyOrders = () => {
 
   useEffect(() => {
     const loadOrders = () => {
+      const userJson = localStorage.getItem('pharmacie_user');
+      const userObj = userJson ? JSON.parse(userJson) : null;
+      const currentUserId = userObj?.userId || null;
+
       const stored = getStoredOrders() as StoredOrder[];
+      const userOrders = stored.filter(order => 
+        order.userId && order.userId === currentUserId
+      );
+      
       setOrders(
-        stored.map((order) => ({
+        userOrders.map((order) => ({
           id: order.id,
           date: order.date,
           items: order.items.map((item) => ({

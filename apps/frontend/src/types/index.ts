@@ -36,6 +36,7 @@ export type PrescriptionFile = {
 
 export type PrescriptionRequest = {
   id: string;
+  userId?: string;
   patientName: string;
   phoneNumber: string;
   email: string;
@@ -60,6 +61,7 @@ export type StoredOrderItem = {
 
 export type StoredOrder = {
   id: string;
+  userId?: string;
   date: string;
   items: StoredOrderItem[];
   total: number;

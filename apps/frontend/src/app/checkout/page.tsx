@@ -741,8 +741,13 @@ export const Checkout = () => {
         hour: 'numeric',
         minute: '2-digit',
       });
+      const userJson = localStorage.getItem('pharmacie_user');
+      const userObj = userJson ? JSON.parse(userJson) : null;
+      const userId = userObj?.userId || null;
+
       const order: StoredOrder = {
         id,
+        userId,
         date: now,
         items: cartItems.map((item) => ({
           name: item.name,
@@ -778,6 +783,20 @@ export const Checkout = () => {
       }
     }, payMethod === 'M-Pesa' ? 4000 : 2500); // Longer delay for M-Pesa to simulate STK process
   };
+
+  if (confirmed) {
+    return (
+      <OrderConfirmed
+        orderId={orderId}
+        items={cartItems}
+        shipping={shipping}
+        payMethod={payMethod}
+        delivery={delivery}
+        onContinue={() => navigate('/products')}
+        onTrack={() => navigate('/orders')}
+      />
+    );
+  }
 
   if (!cartItems.length) {
     return (

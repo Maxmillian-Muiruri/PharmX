@@ -1,6 +1,8 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { CartItem } from '../app/cart/page';
+
+const CART_STORAGE_KEY = 'pharmx_cart';
 
 interface CartContextType {
   items: CartItem[];
@@ -14,8 +16,25 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+function loadCartFromStorage(): CartItem[] {
+  try {
+    const stored = localStorage.getItem(CART_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveCartToStorage(items: CartItem[]) {
+  localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+}
+
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [items, setItems] = useState<CartItem[]>(() => loadCartFromStorage());
+
+  useEffect(() => {
+    saveCartToStorage(items);
+  }, [items]);
 
   const addItem = (newItem: Omit<CartItem, 'id'> & { id?: string }) => {
     const id = newItem.id || `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;

@@ -8,12 +8,12 @@ import {
   CHECKOUT_URL,
   ORDERS_URL,
   ORDERDETAIL_URL,
-PRESCRIPTIONS_URL,
-  PRESCRIPTION_URL,
+  PRESCRIPTIONS_URL,
   PRESCRIPTION_URL,
   PRODUCTLIST_URL,
   SIGNUP_URL,
   TRACK_URL,
+  PROFILE_URL,
 } from "./utils";
 import { Auth } from "./app/auth/page";
 import { HomePage } from "./app/page";
@@ -30,6 +30,7 @@ import MyOrders from "./app/my-orders/page";
 import UploadPrescription from "./app/prescription/page";
 import MyPrescriptions from "./app/prescriptions/page";
 import { TrackOrder } from "./trackorder/OrderTracking";
+import ProfilePage from "./app/profile/page";
 import { ToastProvider } from "./context/ToastContext";
 import { CartProvider } from "./context/CartContext";
 
@@ -94,6 +95,12 @@ function App() {
         {
           path: CHECKOUT_URL,
           Component: Checkout,
+        },
+
+        // profile
+        {
+          path: PROFILE_URL,
+          Component: ProfilePage,
         },
 
         // upload prescription
