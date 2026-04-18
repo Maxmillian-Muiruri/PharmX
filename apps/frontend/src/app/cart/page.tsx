@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import type { JSX } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useCart } from '../../context/CartContext';
+import { useToast } from '../../context/ToastContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type StockStatus = 'in_stock' | 'low_stock' | 'out_of_stock';
 type ImageType = 'capsule' | 'tablet' | 'syrup' | 'supplement';
 
-interface CartItem {
+export interface CartItem {
   id: string;
   name: string;
   category: string;
@@ -18,6 +21,7 @@ interface CartItem {
   stockStatus: StockStatus;
   stockCount?: number;
   imageType: ImageType;
+  image?: string;
 }
 
 interface SuggestedItem {
@@ -36,8 +40,6 @@ const VALID_PROMO_CODES: Record<string, { discount: number; message: string }> =
   PHARMA10: { discount: 0.1, message: '✓ 10% discount applied!' },
   HEALTH20: { discount: 0.2, message: '✓ 20% discount applied!' },
 };
-
-const INITIAL_CART_ITEMS: CartItem[] = [];
 
 const SUGGESTED_ITEMS: SuggestedItem[] = [];
 
@@ -133,10 +135,14 @@ function CartItemCard({
     >
       {/* Image */}
       <div style={{ position: 'relative', width: 72, height: 72, minWidth: 72, borderRadius: 8, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        {item.image ? (
+          <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        ) : (
+          <MedicineIcon type={item.imageType} />
+        )}
         {item.requiresPrescription && (
           <span style={{ position: 'absolute', top: 4, left: 4, background: '#0d4f5c', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 4, padding: '1px 5px', letterSpacing: '.5px', zIndex: 1 }}>Rx</span>
         )}
-        <MedicineIcon type={item.imageType} />
       </div>
 
       {/* Body */}
@@ -192,6 +198,7 @@ function CartItemCard({
 
 function SuggestedItems({ items, onAdd }: { items: SuggestedItem[]; onAdd: (item: SuggestedItem) => void }) {
   const [added, setAdded] = useState<Set<string>>(new Set());
+  if (items.length === 0) return null;
 
   return (
     <div style={{ marginTop: 20 }}>
@@ -202,8 +209,6 @@ function SuggestedItems({ items, onAdd }: { items: SuggestedItem[]; onAdd: (item
           return (
             <button key={item.id} onClick={() => { if (!isAdded) { setAdded(prev => new Set(prev).add(item.id)); onAdd(item); } }}
               style={{ background: isAdded ? '#f0fdf4' : '#fff', border: `1px solid ${isAdded ? '#22c55e' : '#e2e8f0'}`, borderRadius: 10, padding: '10px 8px', textAlign: 'center', cursor: 'pointer', transition: 'border-color .2s, box-shadow .2s' }}
-              onMouseEnter={e => { if (!isAdded) (e.currentTarget as HTMLButtonElement).style.borderColor = '#cbd5e1'; }}
-              onMouseLeave={e => { if (!isAdded) (e.currentTarget as HTMLButtonElement).style.borderColor = '#e2e8f0'; }}
             >
               <div style={{ width: 40, height: 40, background: '#f1f5f9', borderRadius: 8, margin: '0 auto 6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <MedicineIcon type={item.imageType} size={22} />
@@ -333,45 +338,27 @@ function EmptyCart() {
   );
 }
 
-// ─── Cart (Main Export) ───────────────────────────────────────────────────────
+// ─── Cart ─────────────────────────────────────────────────────────────────────
 
 export const Cart = () => {
-  const [items, setItems] = useState<CartItem[]>(INITIAL_CART_ITEMS);
+  const navigate = useNavigate();
+  const { items, updateQuantity, removeItem, clearCart, getSubtotal } = useCart();
+  const { addToast } = useToast();
   const [rxUploaded, setRxUploaded] = useState(false);
 
   const hasRxItems = items.some(item => item.requiresPrescription);
-  const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
-
-  const handleQuantityChange = (id: string, quantity: number) => {
-    setItems(prev => prev.map(item => item.id === id ? { ...item, quantity } : item));
-  };
-
-  const handleRemove = (id: string) => {
-    setItems(prev => prev.filter(item => item.id !== id));
-  };
-
-  const handleAddSuggested = (suggested: SuggestedItem) => {
-    setItems(prev => [...prev, {
-      id: suggested.id,
-      name: suggested.name,
-      category: 'General',
-      brand: 'PharmX Select',
-      packSize: '1 pack',
-      unitPrice: suggested.price,
-      quantity: 1,
-      requiresPrescription: false,
-      stockStatus: 'in_stock',
-      imageType: suggested.imageType,
-    }]);
-  };
+  const subtotal = getSubtotal();
 
   const handleCheckout = () => {
     if (hasRxItems && !rxUploaded) {
-      alert('Please upload your prescription before proceeding to checkout.');
+      addToast({
+        type: 'error',
+        message: 'Please upload your prescription before proceeding to checkout.',
+        duration: 4000,
+      });
       return;
     }
-    // navigate('/checkout') — wire your router here
-    console.log('Checkout with items:', items);
+    navigate('/checkout');
   };
 
   if (items.length === 0) return <EmptyCart />;
@@ -389,7 +376,7 @@ export const Cart = () => {
             {items.length} item{items.length !== 1 ? 's' : ''}
           </span>
         </h1>
-        <button onClick={() => setItems([])} style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: '6px 14px', fontSize: 12, color: '#64748b', cursor: 'pointer', background: 'none', fontFamily: 'inherit' }}>
+        <button onClick={() => clearCart()} style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: '6px 14px', fontSize: 12, color: '#64748b', cursor: 'pointer', background: 'none', fontFamily: 'inherit' }}>
           Clear all
         </button>
       </div>
@@ -418,13 +405,13 @@ export const Cart = () => {
             <CartItemCard
               key={item.id}
               item={item}
-              onQuantityChange={handleQuantityChange}
-              onRemove={handleRemove}
+              onQuantityChange={updateQuantity}
+              onRemove={removeItem}
               onSave={id => console.log('Saved:', id)}
             />
           ))}
 
-          <SuggestedItems items={SUGGESTED_ITEMS} onAdd={handleAddSuggested} />
+          <SuggestedItems items={SUGGESTED_ITEMS} onAdd={() => {}} />
         </div>
 
         {/* Right */}

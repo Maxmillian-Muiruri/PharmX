@@ -1,49 +1,29 @@
 import { useContext } from "react";
-import { Outlet, RouterProvider, createBrowserRouter } from "react-router-dom";
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { APPContext } from "./context";
-import { Error404Page, ErrorPage } from "./components/dev/core";
+import { AppLayout, Error404Page, ErrorPage } from "./components/dev/core";
 import {
   AUTH_URL_PREFIX,
   CART_URL,
+  CHECKOUT_URL,
+  ORDERS_URL,
   PRODUCTLIST_URL,
-  // ROOT_URL_PREFIX,
   SIGNUP_URL,
 } from "./utils";
 import { Auth } from "./app/auth/page";
 import { HomePage } from "./app/page";
 import { AboutPage } from "./app/about/page";
+import { ContactPage } from "./app/contact/page";
 import { Signin } from "./app/auth/signin/page";
 import { Signup } from "./app/auth/signup/page";
 import { ProductList } from "./app/products/page";
 import ProductsListLayout from "./app/products/layout";
-import { ProductDetail } from "./app/products/product/page";
+import ProductDetail from "./app/products/product/page";
 import { Cart } from "./app/cart/page";
-import { Footer } from "./components/Footer";
-import { Header } from "./components/Header";
-import { AnnouncementBar } from "./components/AnnouncementBar";
-import { ScrollProgressBar } from "./components/ScrollProgressBar";
-import { ChatBubble } from "./components/ChatBubble";
-import { BackToTop } from "./components/BackToTop";
-
-const AppLayout = () => {
-  return (
-    <>
-      <ScrollProgressBar />
-      <AnnouncementBar />
-      <div className="min-h-screen bg-slate-50 flex flex-col w-full">
-        <Header />
-
-        <main className="w-full flex-1 pt-16 md:pt-20">
-          <Outlet />
-        </main>
-
-        <Footer />
-      </div>
-      <ChatBubble />
-      <BackToTop />
-    </>
-  );
-};
+import { Checkout } from "./app/checkout/page";
+import MyOrders from "./app/my-orders/page";
+import { ToastProvider } from "./context/ToastContext";
+import { CartProvider } from "./context/CartContext";
 
 function App() {
   const {} = useContext(APPContext);
@@ -102,6 +82,24 @@ function App() {
           Component: Cart,
         },
 
+        // checkout
+        {
+          path: CHECKOUT_URL,
+          Component: Checkout,
+        },
+
+        // my-orders
+        {
+          path: ORDERS_URL,
+          Component: MyOrders,
+        },
+
+        // contact
+        {
+          path: "/contact",
+          Component: ContactPage,
+        },
+
         // Root level 404
         {
           Component: Error404Page,
@@ -111,7 +109,13 @@ function App() {
     },
   ]);
 
-  return <RouterProvider router={router} />;
+  return (
+    <ToastProvider>
+      <CartProvider>
+        <RouterProvider router={router} />
+      </CartProvider>
+    </ToastProvider>
+  );
 }
 
 export default App;

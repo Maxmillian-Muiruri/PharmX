@@ -1,16 +1,11 @@
-import React from "react";
-import { Outlet } from "react-router-dom";
 import { LayoutWrapper } from "../components/dev/core";
+import type { TNodeChildrentType } from "../types";
 
-export default function RootLayout() {
+export default function RootLayout({ children }: Readonly<TNodeChildrentType>) {
   return (
     <LayoutWrapper
       {...{
-        children: (
-          <React.Fragment>
-            <Outlet />
-          </React.Fragment>
-        ),
+        children: children,
       }}
     />
   );
