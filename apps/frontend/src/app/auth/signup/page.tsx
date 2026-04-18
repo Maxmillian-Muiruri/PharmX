@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { useState, type FormEvent } from 'react';
 import { Mail, Lock, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -181,5 +180,3 @@ export default function SignUpPage() {
     </div>
   );
 }
-=======
->>>>>>> origin/main
