@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getOrdersUpdateEventName, getStoredOrders } from '../../utils/prescriptions';
+import type { StoredOrder } from '../../types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -18,20 +20,9 @@ interface Order {
   total: number;
   estimatedDelivery: string;
   status: OrderStatus;
+  isPrescriptionOrder?: boolean;
+  prescriptionId?: string | null;
 }
-
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-
-const MOCK_ORDERS: Order[] = [
-  {
-    id: 'ORD-Q4PL5AAY4',
-    date: 'April 13, 2026 at 10:12 PM',
-    items: [{ name: 'Baby Formula Powder', quantity: 1, price: 34.99 }],
-    total: 43.78,
-    estimatedDelivery: '2-4 hours',
-    status: 'Processing',
-  },
-];
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
 
@@ -78,6 +69,11 @@ function OrderCard({ order }: { order: Order }) {
         <span style={{ fontSize: 13, fontWeight: 700, color: '#0d4f5c', fontFamily: "'Sora', sans-serif" }}>
           {order.id}
         </span>
+        {order.isPrescriptionOrder && (
+          <span style={{ background: '#eff6ff', color: '#1d4ed8', fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 999 }}>
+            Rx {order.prescriptionId ?? ''}
+          </span>
+        )}
         <StatusBadge status={order.status} />
       </div>
 
@@ -173,10 +169,47 @@ function Stats({ orders }: { orders: Order[] }) {
 // ─── MyOrders ─────────────────────────────────────────────────────────────────
 
 const MyOrders = () => {
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'All'>('All');
+  const [orders, setOrders] = useState<Order[]>([]);
 
-  const filtered = MOCK_ORDERS.filter(o => {
+  useEffect(() => {
+    const loadOrders = () => {
+      const userJson = localStorage.getItem('pharmacie_user');
+      const userObj = userJson ? JSON.parse(userJson) : null;
+      const currentUserId = userObj?.userId || null;
+
+      const stored = getStoredOrders() as StoredOrder[];
+      const userOrders = stored.filter(order => 
+        order.userId && order.userId === currentUserId
+      );
+      
+      setOrders(
+        userOrders.map((order) => ({
+          id: order.id,
+          date: order.date,
+          items: order.items.map((item) => ({
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+          })),
+          total: order.total,
+          estimatedDelivery: order.estimatedDelivery,
+          status: order.status === 'Confirmed' ? 'Processing' : order.status,
+          isPrescriptionOrder: order.isPrescriptionOrder,
+          prescriptionId: order.prescriptionId,
+        })),
+      );
+    };
+
+    loadOrders();
+    const eventName = getOrdersUpdateEventName();
+    window.addEventListener(eventName, loadOrders);
+    return () => window.removeEventListener(eventName, loadOrders);
+  }, []);
+
+  const filtered = orders.filter(o => {
     const matchSearch = o.id.toLowerCase().includes(search.toLowerCase()) ||
       o.items.some(i => i.name.toLowerCase().includes(search.toLowerCase()));
     const matchStatus = statusFilter === 'All' || o.status === statusFilter;
@@ -203,7 +236,7 @@ const MyOrders = () => {
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Search by order number or customer name..."
+            placeholder="Search by order number or product name..."
             style={{
               width: '100%',
               height: 40,
@@ -223,7 +256,9 @@ const MyOrders = () => {
 
         {/* Filter dropdown */}
         <div style={{ position: 'relative' }}>
-          <button
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as OrderStatus | 'All')}
             style={{
               height: 40,
               padding: '0 14px',
@@ -235,29 +270,40 @@ const MyOrders = () => {
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: 6,
               fontFamily: 'inherit',
             }}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-            </svg>
-            Filter
-          </button>
+            <option value="All">All statuses</option>
+            <option value="Processing">Processing</option>
+            <option value="In Progress">In Progress</option>
+            <option value="On the Way">On the Way</option>
+            <option value="Delivered">Delivered</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
         </div>
       </div>
 
       {/* Order list */}
       {filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b', fontSize: 14 }}>
-          No orders found.
+        <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b', fontSize: 14, background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12 }}>
+          {orders.length === 0 ? (
+            <>
+              <p style={{ marginBottom: 14 }}>You have no orders yet.</p>
+              <button
+                onClick={() => navigate('/products')}
+                style={{ border: 'none', borderRadius: 10, background: '#0d4f5c', color: '#fff', padding: '10px 16px', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}
+              >
+                Start Shopping
+              </button>
+            </>
+          ) : 'No orders found.'}
         </div>
       ) : (
         filtered.map(order => <OrderCard key={order.id} order={order} />)
       )}
 
       {/* Stats grid */}
-      <Stats orders={MOCK_ORDERS} />
+      <Stats orders={orders} />
     </div>
   );
 };

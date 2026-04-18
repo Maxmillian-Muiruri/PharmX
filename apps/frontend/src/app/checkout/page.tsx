@@ -2,11 +2,18 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
+import {
+  clearCheckoutPrescriptionId,
+  getCheckoutPrescriptionId,
+  getPrescriptionById,
+  saveOrder,
+} from '../../utils/prescriptions';
+import type { StoredOrder } from '../../types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type Step = 1 | 2 | 3;
-type PaymentMethod = 'Credit/Debit Card' | 'PayPal' | null;
+type PaymentMethod = 'Credit/Debit Card' | 'M-Pesa' | null;
 type DeliveryOption = 'standard' | 'express';
 
 interface ShippingInfo {
@@ -27,6 +34,10 @@ interface CardInfo {
   name: string;
 }
 
+interface MpesaInfo {
+  phoneNumber: string;
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function genOrderId() {
@@ -35,7 +46,21 @@ function genOrderId() {
 
 function formatCardNumber(v: string) {
   const digits = v.replace(/\D/g, '').slice(0, 16);
-  return digits.replace(/(.{4})/g, 'KES1 ').trim();
+  return digits.replace(/(.{4})/g, ' ').trim();
+}
+
+function formatMpesaNumber(v: string) {
+  const digits = v.replace(/\D/g, '').slice(0, 12);
+  if (digits.startsWith('254')) {
+    return digits;
+  } else if (digits.startsWith('0')) {
+    return '254' + digits.slice(1);
+  } else if (digits.startsWith('7')) {
+    return '2547' + digits.slice(1);
+  } else if (digits.startsWith('1')) {
+    return '2541' + digits.slice(1);
+  }
+  return digits;
 }
 
 function formatExpiry(v: string) {
@@ -293,16 +318,19 @@ function StepShipping({
 // ─── Step 2: Payment ──────────────────────────────────────────────────────────
 
 function StepPayment({
-  payMethod, setPayMethod, card, setCard, onBack, onNext,
+  payMethod, setPayMethod, card, setCard, mpesa, setMpesa, onBack, onNext,
 }: {
   payMethod: PaymentMethod;
   setPayMethod: (m: PaymentMethod) => void;
   card: CardInfo;
   setCard: (c: CardInfo) => void;
+  mpesa: MpesaInfo;
+  setMpesa: (m: MpesaInfo) => void;
   onBack: () => void;
   onNext: () => void;
 }) {
   const setC = (key: keyof CardInfo) => (v: string) => setCard({ ...card, [key]: v });
+  const setM = (key: keyof MpesaInfo) => (v: string) => setMpesa({ ...mpesa, [key]: v });
 
   return (
     <div>
@@ -314,7 +342,7 @@ function StepPayment({
       </div>
 
       {/* Method toggle */}
-      {(['Credit/Debit Card', 'PayPal'] as PaymentMethod[]).map(m => (
+      {(['Credit/Debit Card', 'M-Pesa'] as PaymentMethod[]).map(m => (
         <div
           key={m!}
           onClick={() => setPayMethod(m)}
@@ -350,6 +378,45 @@ function StepPayment({
             <Field label="CVV"         required value={card.cvv}    onChange={v => setC('cvv')(v.replace(/\D/g,'').slice(0,4))}   placeholder="123" />
           </div>
           <Field label="Name on Card" required value={card.name} onChange={setC('name')} placeholder="John Doe" />
+        </div>
+      )}
+
+      {/* M-Pesa details */}
+      {payMethod === 'M-Pesa' && (
+        <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{
+            background: '#f0f9ff',
+            border: '1px solid #0ea5e9',
+            borderRadius: 8,
+            padding: '12px',
+            marginBottom: 8
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+              <div style={{ width: 24, height: 24, background: '#10b981', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ color: '#fff', fontSize: 12, fontWeight: 'bold' }}>M</span>
+              </div>
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#0d4f5c' }}>M-Pesa Payment</span>
+            </div>
+            <p style={{ fontSize: 11, color: '#64748b', margin: 0, lineHeight: 1.4 }}>
+              Enter your M-Pesa phone number to receive an STK push prompt for payment confirmation.
+            </p>
+          </div>
+          <Field
+            label="M-Pesa Phone Number" required
+            value={mpesa.phoneNumber}
+            onChange={v => setM('phoneNumber')(formatMpesaNumber(v))}
+            placeholder="2547XXXXXXXX or 07XXXXXXXX"
+          />
+          <div style={{
+            background: '#fef3c7',
+            border: '1px solid #f59e0b',
+            borderRadius: 8,
+            padding: '10px',
+            fontSize: 11,
+            color: '#92400e'
+          }}>
+            <strong>Note:</strong> Ensure your phone has sufficient balance and is available to receive the STK push.
+          </div>
         </div>
       )}
 
@@ -488,7 +555,7 @@ function StepReview({
             Download Receipt
           </button>
           <button onClick={onTrack} style={{ height: 34, padding: '0 14px', border: 'none', borderRadius: 8, background: '#0d4f5c', color: '#fff', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
-            Track Order
+            View my Orders
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
           </button>
         </div>
@@ -497,9 +564,9 @@ function StepReview({
       {/* Status cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 20 }}>
         {[
-          { icon: '📦', title: 'Order Placed', value: now },
-          { icon: '🚚', title: 'Estimated Delivery', value: delivery === 'express' ? 'Same day' : '2-4 hours' },
-          { icon: '✅', title: 'Payment Status', value: 'Confirmed', green: true },
+          { icon: '', title: 'Order Placed', value: now },
+          { icon: '', title: 'Estimated Delivery', value: delivery === 'express' ? 'Same day' : '2-4 hours' },
+          { icon: '', title: 'Payment Status', value: 'Confirmed', green: true },
         ].map(card => (
           <div key={card.title} style={{ border: '1px solid #e2e8f0', borderRadius: 12, padding: '14px 12px', textAlign: 'center', background: '#fff' }}>
             <div style={{ fontSize: 22, marginBottom: 6 }}>{card.icon}</div>
@@ -544,8 +611,8 @@ function StepReview({
           <div style={{ fontSize: 13, color: '#12251e', fontWeight: 600 }}>{shipping.firstName} {shipping.lastName}</div>
           <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{shipping.street}</div>
           <div style={{ fontSize: 12, color: '#64748b' }}>{shipping.city}, {shipping.state} {shipping.zip}</div>
-          <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>📞 {shipping.phone}</div>
-          <div style={{ fontSize: 12, color: '#64748b' }}>✉ {shipping.email}</div>
+          <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}> {shipping.phone}</div>
+          <div style={{ fontSize: 12, color: '#64748b' }}>{shipping.email}</div>
         </div>
         <div style={{ border: '1px solid #e2e8f0', borderRadius: 12, padding: '14px 16px', background: '#fff' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
@@ -557,7 +624,7 @@ function StepReview({
           <div style={{ fontSize: 12, color: '#64748b', marginBottom: 2 }}>Transaction ID</div>
           <div style={{ fontSize: 12, color: '#12251e', marginBottom: 6 }}>{txnId}</div>
           <div style={{ fontSize: 12, color: '#64748b', marginBottom: 2 }}>Payment Status</div>
-          <span style={{ fontSize: 11, background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: 999, fontWeight: 600 }}>✓ Payment Successful</span>
+          <span style={{ fontSize: 11, background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: 999, fontWeight: 600 }}> Payment Successful</span>
         </div>
       </div>
 
@@ -586,7 +653,7 @@ function StepReview({
           Continue Shopping
         </button>
         <button onClick={onTrack} style={{ height: 42, padding: '0 20px', background: '#0d4f5c', color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-          Track Your Order
+          View My Orders
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
         </button>
       </div>
@@ -606,6 +673,7 @@ export const Checkout = () => {
   const navigate = useNavigate();
   const { items, clearCart } = useCart();
   const { addToast } = useToast();
+  const [prescriptionData] = useState(() => getPrescriptionById(getCheckoutPrescriptionId()));
 
   const [step,     setStep]     = useState<Step>(1);
   const [placing,  setPlacing]  = useState(false);
@@ -613,30 +681,54 @@ export const Checkout = () => {
   const [delivery, setDelivery] = useState<DeliveryOption>('standard');
   const [payMethod,setPayMethod]= useState<PaymentMethod>(null);
   const [card, setCard] = useState<CardInfo>({ number: '', expiry: '', cvv: '', name: '' });
+  const [mpesa, setMpesa] = useState<MpesaInfo>({ phoneNumber: '' });
   const [shipping, setShipping] = useState<ShippingInfo>({
-    firstName: '', lastName: '', email: '', phone: '',
-    street: '', city: '', state: '', zip: '',
+    firstName: prescriptionData?.patientName.split(' ')[0] ?? '',
+    lastName: prescriptionData?.patientName.split(' ').slice(1).join(' ') ?? '',
+    email: prescriptionData?.email ?? '',
+    phone: prescriptionData?.phoneNumber ?? '',
+    street: prescriptionData?.address ?? '',
+    city: '',
+    state: '',
+    zip: '',
   });
 
   const deliveryFee = delivery === 'express' ? 9.99 : 5.99;
 
-  const cartItems = items.map(i => ({
-    name: i.name,
-    quantity: i.quantity,
-    unitPrice: i.unitPrice,
-    image: i.image,
-  }));
+  const cartItems = prescriptionData
+    ? [{
+        name: `Prescription Order (${prescriptionData.id})`,
+        quantity: 1,
+        unitPrice: prescriptionData.estimatedPrice ?? 0,
+        image: prescriptionData.files[0]?.type === 'application/pdf'
+          ? undefined
+          : prescriptionData.files[0]?.dataUrl,
+      }]
+    : items.map(i => ({
+        name: i.name,
+        quantity: i.quantity,
+        unitPrice: i.unitPrice,
+        image: i.image,
+      }));
 
   const handlePlace = () => {
     setPlacing(true);
+<<<<<<< HEAD
+    
+=======
 
+>>>>>>> origin/main
     // Show appropriate processing message based on payment method
     if (payMethod === 'M-Pesa') {
       addToast({ type: 'info', message: 'Sending STK push to your phone...', duration: 3000 });
     } else {
       addToast({ type: 'success', message: 'Processing your payment...', duration: 2000 });
     }
+<<<<<<< HEAD
+    
+=======
 
+>>>>>>> origin/main
     setTimeout(() => {
       const id = genOrderId();
       const subtotal = cartItems.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
@@ -648,8 +740,18 @@ export const Checkout = () => {
         hour: 'numeric',
         minute: '2-digit',
       });
+<<<<<<< HEAD
+      const userJson = localStorage.getItem('pharmacie_user');
+      const userObj = userJson ? JSON.parse(userJson) : null;
+      const userId = userObj?.userId || null;
+
       const order: StoredOrder = {
         id,
+        userId,
+=======
+      const order: StoredOrder = {
+        id,
+>>>>>>> origin/main
         date: now,
         items: cartItems.map((item) => ({
           name: item.name,
@@ -668,12 +770,27 @@ export const Checkout = () => {
       };
 
       saveOrder(order);
+<<<<<<< HEAD
+      setOrderId(id);
+      setConfirmed(true);
+=======
+>>>>>>> origin/main
       if (!prescriptionData) {
         clearCart();
       } else {
         clearCheckoutPrescriptionId();
       }
       setPlacing(false);
+<<<<<<< HEAD
+      
+      // Show success message based on payment method
+      if (payMethod === 'M-Pesa') {
+        addToast({ type: 'success', message: 'M-Pesa payment successful!', duration: 3000 });
+      } else {
+        addToast({ type: 'success', message: 'Payment processed successfully!', duration: 3000 });
+      }
+    }, payMethod === 'M-Pesa' ? 4000 : 2500); // Longer delay for M-Pesa to simulate STK process
+=======
 
       // Show success message based on payment method
       if (payMethod === 'M-Pesa') {
@@ -693,6 +810,7 @@ export const Checkout = () => {
       // Redirect to orders page after successful payment
       navigate('/orders');
     }, payMethod === 'M-Pesa' ? 4000 : 2500);
+>>>>>>> origin/main
   };
 
       saveOrder(order);
@@ -754,6 +872,50 @@ export const Checkout = () => {
     );
   }
 
+  if (!cartItems.length) {
+    return (
+      <div style={{ maxWidth: 760, margin: '0 auto', padding: '2rem 1rem', textAlign: 'center', fontFamily: "'DM Sans', sans-serif" }}>
+        <h1 style={{ fontFamily: "'Sora', sans-serif", fontSize: 24, fontWeight: 700, color: '#12251e', marginBottom: 10 }}>
+          Nothing to checkout yet
+        </h1>
+        <p style={{ fontSize: 14, color: '#64748b', marginBottom: 18 }}>
+          Add products to your cart or wait until a prescription request becomes available for payment.
+        </p>
+        <button
+          onClick={() => navigate('/products')}
+          style={{
+            height: 44,
+            border: 'none',
+            borderRadius: 12,
+            background: '#0d4f5c',
+            color: '#fff',
+            padding: '0 18px',
+            fontSize: 13,
+            fontWeight: 700,
+            cursor: 'pointer',
+            fontFamily: "'Sora', sans-serif",
+          }}
+        >
+          Browse Products
+        </button>
+      </div>
+    );
+  }
+
+  if (confirmed) {
+    return (
+      <OrderConfirmed
+        orderId={orderId}
+        items={cartItems}
+        shipping={shipping}
+        payMethod={payMethod}
+        delivery={delivery}
+        onContinue={() => navigate('/products')}
+        onTrack={() => navigate('/orders')}
+      />
+    );
+  }
+
   return (
     <div style={{ maxWidth: 980, margin: '0 auto', padding: '1.5rem 1rem 3rem', fontFamily: "'DM Sans', sans-serif" }}>
       {/* Page header */}
@@ -776,6 +938,19 @@ export const Checkout = () => {
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 300px', gap: 24, alignItems: 'start' }}>
         {/* Left: form */}
         <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 16, padding: '1.5rem' }}>
+          {prescriptionData ? (
+            <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 12, padding: '12px 14px', marginBottom: 20 }}>
+              <div style={{ fontSize: 12, color: '#1d4ed8', textTransform: 'uppercase', letterSpacing: '.08em', fontWeight: 700, marginBottom: 6 }}>
+                Prescription Checkout
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#0d4f5c', marginBottom: 4 }}>
+                {prescriptionData.id}
+              </div>
+              <div style={{ fontSize: 13, color: '#1e3a8a' }}>
+                This order was created from your approved prescription request and uses the pharmacist&apos;s estimated price.
+              </div>
+            </div>
+          ) : null}
           {step === 1 && (
             <StepShipping
               info={shipping} setInfo={setShipping}
@@ -787,6 +962,7 @@ export const Checkout = () => {
             <StepPayment
               payMethod={payMethod} setPayMethod={setPayMethod}
               card={card} setCard={setCard}
+              mpesa={mpesa} setMpesa={setMpesa}
               onBack={() => setStep(1)}
               onNext={() => setStep(3)}
             />

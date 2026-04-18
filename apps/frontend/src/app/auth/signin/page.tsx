@@ -10,6 +10,10 @@ interface LoginData {
 }
 
 interface UserData {
+<<<<<<< HEAD
+  userId?: string;
+=======
+>>>>>>> origin/main
   email: string;
   loggedIn?: boolean;
   loginTime?: string;
@@ -38,6 +42,10 @@ export const Signin = () => {
       toast.dismiss();
 
       const user: UserData = {
+<<<<<<< HEAD
+        userId: 'user_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9),
+=======
+>>>>>>> origin/main
         email: loginData.email,
         loggedIn: true,
         loginTime: new Date().toISOString(),
@@ -47,7 +55,11 @@ export const Signin = () => {
       window.dispatchEvent(new Event('auth-change'));
 
       toast.success('Welcome back!');
+<<<<<<< HEAD
+      navigate('/');
+=======
       navigate('/home');
+>>>>>>> origin/main
     }, 1000);
   };
 
@@ -60,6 +72,88 @@ export const Signin = () => {
   };
 
   return (
+<<<<<<< HEAD
+    <div className="w-full">
+      <h2 className="text-2xl font-bold text-teal-800 mb-1">Sign in</h2>
+      <p className="text-gray-500 mb-6">Enter your credentials to access your account</p>
+
+      <form onSubmit={handleLogin}>
+        <div className="mb-5">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Email address</label>
+          <div className="relative">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <Mail className="w-5 h-5" />
+            </div>
+            <input
+              type="email"
+              name="email"
+              placeholder="you@example.com"
+              value={loginData.email}
+              onChange={handleChange}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all bg-gray-50 focus:bg-white"
+              required
+            />
+          </div>
+        </div>
+
+        <div className="mb-5">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+          <div className="relative">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <Lock className="w-5 h-5" />
+            </div>
+            <input
+              type="password"
+              name="password"
+              placeholder="Enter your password"
+              value={loginData.password}
+              onChange={handleChange}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all bg-gray-50 focus:bg-white"
+              required
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-between items-center mb-6">
+          <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+            <input
+              type="checkbox"
+              name="rememberMe"
+              checked={loginData.rememberMe}
+              onChange={handleChange}
+              className="w-4 h-4 text-teal-600 rounded focus:ring-teal-500 cursor-pointer"
+            />
+            <span>Remember me</span>
+          </label>
+          <span className="text-sm text-teal-600 cursor-pointer hover:text-teal-700 hover:underline">Forgot password?</span>
+        </div>
+
+        <button 
+          type="submit" 
+          className="w-full py-3.5 bg-teal-600 text-white font-semibold rounded-lg cursor-pointer transition-all hover:bg-teal-700 active:scale-[0.98] shadow-lg hover:shadow-xl mb-6"
+        >
+          Sign in
+        </button>
+
+        <div className="text-center text-gray-600">
+          Don't have an account?{' '}
+          <button 
+            type="button" 
+            className="text-teal-600 font-semibold cursor-pointer bg-none border-none p-0 hover:text-teal-700 hover:underline"
+            onClick={() => navigate('/auth/signup')}
+          >
+            Create account
+          </button>
+        </div>
+
+        <div className="text-center text-xs text-gray-400 mt-6">© 2026 Pharmacie Nouni. All rights reserved.</div>
+      </form>
+    </div>
+  );
+};
+
+export default Signin;
+=======
     <div className="min-h-screen bg-muted/30 flex items-center justify-center py-8 px-4">
       <div className="wrap">
         <div className="left">
@@ -360,3 +454,4 @@ export const Signin = () => {
     </div>
   );
 };
+>>>>>>> origin/main
