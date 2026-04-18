@@ -445,8 +445,7 @@ function StepReview({
   onPlace: () => void;
   placing: boolean;
 }) {
-  const [agreed,     setAgreed]     = useState(false);
-  const [newsletter, setNewsletter] = useState(false);
+  const [agreed, setAgreed] = useState(false);
 
   return (
     <div>
@@ -514,6 +513,15 @@ function StepReview({
     </div>
   );
 }
+
+function OrderConfirmed({
+  orderId,
+  items,
+  shipping,
+  payMethod,
+  delivery,
+  onContinue,
+  onTrack,
 }: {
   orderId: string;
   items: Array<{ name: string; quantity: number; unitPrice: number }>;
@@ -665,8 +673,6 @@ function StepReview({
   );
 }
 
-=======
->>>>>>> f609b7e (feat(frontend): add order tracking page and routes)
 // ─── Checkout (main) ──────────────────────────────────────────────────────────
 
 export const Checkout = () => {
@@ -677,6 +683,8 @@ export const Checkout = () => {
 
   const [step,     setStep]     = useState<Step>(1);
   const [placing,  setPlacing]  = useState(false);
+  const [orderId, setOrderId]   = useState('');
+  const [confirmed, setConfirmed]= useState(false);
 
   const [delivery, setDelivery] = useState<DeliveryOption>('standard');
   const [payMethod,setPayMethod]= useState<PaymentMethod>(null);
@@ -711,24 +719,16 @@ export const Checkout = () => {
         image: i.image,
       }));
 
-  const handlePlace = () => {
+const handlePlace = () => {
     setPlacing(true);
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> origin/main
     // Show appropriate processing message based on payment method
     if (payMethod === 'M-Pesa') {
       addToast({ type: 'info', message: 'Sending STK push to your phone...', duration: 3000 });
     } else {
       addToast({ type: 'success', message: 'Processing your payment...', duration: 2000 });
     }
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> origin/main
     setTimeout(() => {
       const id = genOrderId();
       const subtotal = cartItems.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
@@ -740,7 +740,6 @@ export const Checkout = () => {
         hour: 'numeric',
         minute: '2-digit',
       });
-<<<<<<< HEAD
       const userJson = localStorage.getItem('pharmacie_user');
       const userObj = userJson ? JSON.parse(userJson) : null;
       const userId = userObj?.userId || null;
@@ -748,10 +747,6 @@ export const Checkout = () => {
       const order: StoredOrder = {
         id,
         userId,
-=======
-      const order: StoredOrder = {
-        id,
->>>>>>> origin/main
         date: now,
         items: cartItems.map((item) => ({
           name: item.name,
@@ -770,18 +765,14 @@ export const Checkout = () => {
       };
 
       saveOrder(order);
-<<<<<<< HEAD
       setOrderId(id);
       setConfirmed(true);
-=======
->>>>>>> origin/main
       if (!prescriptionData) {
         clearCart();
       } else {
         clearCheckoutPrescriptionId();
       }
       setPlacing(false);
-<<<<<<< HEAD
       
       // Show success message based on payment method
       if (payMethod === 'M-Pesa') {
@@ -789,56 +780,7 @@ export const Checkout = () => {
       } else {
         addToast({ type: 'success', message: 'Payment processed successfully!', duration: 3000 });
       }
-    }, payMethod === 'M-Pesa' ? 4000 : 2500); // Longer delay for M-Pesa to simulate STK process
-=======
-
-      // Show success message based on payment method
-      if (payMethod === 'M-Pesa') {
-        addToast({
-          type: 'success',
-          message: 'M-Pesa payment successful!',
-          duration: 3000
-        });
-      } else {
-        addToast({
-          type: 'success',
-          message: 'Payment processed successfully!',
-          duration: 3000
-        });
-      }
-
-      // Redirect to orders page after successful payment
-      navigate('/orders');
-    }, payMethod === 'M-Pesa' ? 4000 : 2500);
->>>>>>> origin/main
-  };
-
-      saveOrder(order);
-      if (!prescriptionData) {
-        clearCart();
-      } else {
-        clearCheckoutPrescriptionId();
-      }
-      setPlacing(false);
-
-      // Show success message based on payment method
-      if (payMethod === 'M-Pesa') {
-        addToast({
-          type: 'success',
-          message: 'M-Pesa payment successful!',
-          duration: 3000
-        });
-      } else {
-        addToast({
-          type: 'success',
-          message: 'Payment processed successfully!',
-          duration: 3000
-        });
-      }
-
-      // Redirect to orders page after successful payment
-      navigate('/orders');
-    }, payMethod === 'M-Pesa' ? 4000 : 2500);
+}, payMethod === 'M-Pesa' ? 4000 : 2500); // Longer delay for M-Pesa to simulate STK process
   };
 
   if (!cartItems.length) {
@@ -868,7 +810,6 @@ export const Checkout = () => {
           Browse Products
         </button>
       </div>
->>>>>>> f609b7e (feat(frontend): add order tracking page and routes)
     );
   }
 
