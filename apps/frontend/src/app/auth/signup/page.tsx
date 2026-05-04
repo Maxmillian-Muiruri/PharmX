@@ -68,7 +68,7 @@ export default function SignUpPage() {
 
   return (
     <div className="w-full">
-      <h2 className="text-2xl font-bold text-teal-800 mb-1">Create account</h2>
+      <h2 className="text-2xl font-bold text-[#0d4f5c] mb-1">Create account</h2>
       <p className="text-gray-500 mb-6">Fill in your details to get started</p>
 
       <form onSubmit={handleRegister}>
@@ -83,7 +83,7 @@ export default function SignUpPage() {
               placeholder="john_doe"
               value={registerData.username}
               onChange={(e) => setRegisterData(prev => ({ ...prev, username: e.target.value }))}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all bg-gray-50 focus:bg-white"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0d4f5c] focus:border-[#0d4f5c] outline-none transition-all bg-gray-50 focus:bg-white"
               required
             />
           </div>
@@ -100,7 +100,7 @@ export default function SignUpPage() {
               placeholder="John Doe"
               value={registerData.fullName}
               onChange={(e) => setRegisterData(prev => ({ ...prev, fullName: e.target.value }))}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all bg-gray-50 focus:bg-white"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0d4f5c] focus:border-[#0d4f5c] outline-none transition-all bg-gray-50 focus:bg-white"
               required
             />
           </div>
@@ -117,7 +117,7 @@ export default function SignUpPage() {
               placeholder="you@example.com"
               value={registerData.email}
               onChange={(e) => setRegisterData(prev => ({ ...prev, email: e.target.value }))}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all bg-gray-50 focus:bg-white"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0d4f5c] focus:border-[#0d4f5c] outline-none transition-all bg-gray-50 focus:bg-white"
               required
             />
           </div>
@@ -134,7 +134,7 @@ export default function SignUpPage() {
               placeholder="Min. 8 characters"
               value={registerData.password}
               onChange={(e) => setRegisterData(prev => ({ ...prev, password: e.target.value }))}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all bg-gray-50 focus:bg-white"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0d4f5c] focus:border-[#0d4f5c] outline-none transition-all bg-gray-50 focus:bg-white"
               required
             />
           </div>
@@ -151,7 +151,7 @@ export default function SignUpPage() {
               placeholder="Repeat your password"
               value={registerData.confirmPassword}
               onChange={(e) => setRegisterData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all bg-gray-50 focus:bg-white"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0d4f5c] focus:border-[#0d4f5c] outline-none transition-all bg-gray-50 focus:bg-white"
               required
             />
           </div>
@@ -159,7 +159,7 @@ export default function SignUpPage() {
 
         <button 
           type="submit" 
-          className="w-full py-3.5 bg-teal-600 text-white font-semibold rounded-lg cursor-pointer transition-all hover:bg-teal-700 active:scale-[0.98] shadow-lg hover:shadow-xl mb-6"
+          className="w-full py-3.5 bg-[#0d4f5c] text-white font-semibold rounded-lg cursor-pointer transition-all hover:bg-[#164e63] active:scale-[0.98] shadow-lg hover:shadow-xl mb-6"
         >
           Create account
         </button>
@@ -168,7 +168,7 @@ export default function SignUpPage() {
           Already have an account?{' '}
           <button 
             type="button" 
-            className="text-teal-600 font-semibold cursor-pointer bg-none border-none p-0 hover:text-teal-700 hover:underline"
+            className="text-[#0d4f5c] font-semibold cursor-pointer bg-none border-none p-0 hover:text-[#164e63] hover:underline"
             onClick={() => navigate('/auth')}
           >
             Sign in

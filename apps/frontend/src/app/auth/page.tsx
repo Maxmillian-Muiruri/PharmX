@@ -14,10 +14,10 @@ export const Auth = () => {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-cyan-50 flex items-center justify-center p-4 md:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-[#f0fdf4] via-white to-[#e0f2fe] flex items-center justify-center p-4 md:p-8">
       <div className="flex flex-col lg:flex-row w-full max-w-5xl bg-white rounded-3xl overflow-hidden shadow-2xl">
         {/* Left Side - Static Info */}
-        <div className="lg:w-[45%] bg-gradient-to-br from-teal-600 to-teal-800 p-8 md:p-12 flex flex-col items-center justify-center text-white">
+        <div className="lg:w-[45%] bg-gradient-to-br from-[#0d4f5c] to-[#164e63] p-8 md:p-12 flex flex-col items-center justify-center text-white">
           <div className="w-24 h-24 bg-white rounded-2xl p-3 mb-6 shadow-lg">
             <img
               src="/logo.jpg"

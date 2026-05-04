@@ -122,62 +122,67 @@ function CartItemCard({
         background: '#fff',
         border: '1px solid #e2e8f0',
         borderRadius: 12,
-        padding: '1rem',
+        padding: '0.75rem',
         display: 'flex',
-        gap: '1rem',
+        gap: '0.75rem',
         transition: 'opacity .25s, transform .25s, box-shadow .2s',
         opacity: removing ? 0 : 1,
         transform: removing ? 'translateX(16px)' : 'translateX(0)',
         boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+        flexDirection: 'column',
+        alignItems: 'flex-start'
       }}
       onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)')}
       onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)')}
     >
-      {/* Image */}
-      <div style={{ position: 'relative', width: 72, height: 72, minWidth: 72, borderRadius: 8, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-        {item.image ? (
-          <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        ) : (
-          <MedicineIcon type={item.imageType} />
-        )}
-        {item.requiresPrescription && (
-          <span style={{ position: 'absolute', top: 4, left: 4, background: '#0d4f5c', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 4, padding: '1px 5px', letterSpacing: '.5px', zIndex: 1 }}>Rx</span>
-        )}
-      </div>
+      {/* Image and Body Container */}
+      <div style={{ display: 'flex', gap: '0.75rem', width: '100%', alignItems: 'flex-start' }}>
+        {/* Image */}
+        <div style={{ position: 'relative', width: 60, height: 60, minWidth: 60, borderRadius: 8, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+          {item.image ? (
+            <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            <MedicineIcon type={item.imageType} size={24} />
+          )}
+          {item.requiresPrescription && (
+            <span style={{ position: 'absolute', top: 2, left: 2, background: '#0d4f5c', color: '#fff', fontSize: 8, fontWeight: 700, borderRadius: 3, padding: '1px 3px', letterSpacing: '.5px', zIndex: 1 }}>Rx</span>
+          )}
+        </div>
 
-      {/* Body */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 11, color: '#0d4f5c', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.8px', marginBottom: 2 }}>{item.category}</div>
-        <div style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 600, color: '#12251e', marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</div>
-        <div style={{ fontSize: 12, color: '#64748b', marginBottom: 8 }}>{item.packSize} · {item.brand}</div>
+        {/* Body */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 11, color: '#0d4f5c', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.8px', marginBottom: 2 }}>{item.category}</div>
+          <div style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 600, color: '#12251e', marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</div>
+          <div style={{ fontSize: 12, color: '#64748b', marginBottom: 8 }}>{item.packSize} · {item.brand}</div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          {/* Qty */}
-          <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden', background: '#f8fafc' }}>
-            <button onClick={() => onQuantityChange(item.id, Math.max(1, item.quantity - 1))} style={{ width: 30, height: 30, border: 'none', background: 'none', cursor: 'pointer', fontSize: 16, color: '#0d4f5c', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
-            <span style={{ width: 32, textAlign: 'center', fontSize: 13, fontWeight: 600, color: '#12251e', userSelect: 'none' }}>{item.quantity}</span>
-            <button onClick={() => onQuantityChange(item.id, item.quantity + 1)} style={{ width: 30, height: 30, border: 'none', background: 'none', cursor: 'pointer', fontSize: 16, color: '#0d4f5c', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            {/* Qty */}
+            <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden', background: '#f8fafc' }}>
+              <button onClick={() => onQuantityChange(item.id, Math.max(1, item.quantity - 1))} style={{ width: 30, height: 30, border: 'none', background: 'none', cursor: 'pointer', fontSize: 16, color: '#0d4f5c', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+              <span style={{ width: 32, textAlign: 'center', fontSize: 13, fontWeight: 600, color: '#12251e', userSelect: 'none' }}>{item.quantity}</span>
+              <button onClick={() => onQuantityChange(item.id, item.quantity + 1)} style={{ width: 30, height: 30, border: 'none', background: 'none', cursor: 'pointer', fontSize: 16, color: '#0d4f5c', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+            </div>
+
+            {/* Stock */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: stock.dot, display: 'inline-block' }} />
+              <span style={{ fontSize: 11, fontWeight: 500, color: stock.labelColor }}>{stock.label}</span>
+            </div>
+
+            {/* Save */}
+            <button onClick={() => { setSaved(true); onSave(item.id); }} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: saved ? '#0d4f5c' : '#64748b', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill={saved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+              {saved ? 'Saved' : 'Save'}
+            </button>
           </div>
-
-          {/* Stock */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: stock.dot, display: 'inline-block' }} />
-            <span style={{ fontSize: 11, fontWeight: 500, color: stock.labelColor }}>{stock.label}</span>
-          </div>
-
-          {/* Save */}
-          <button onClick={() => { setSaved(true); onSave(item.id); }} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: saved ? '#0d4f5c' : '#64748b', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill={saved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
-            {saved ? 'Saved' : 'Save'}
-          </button>
         </div>
       </div>
 
       {/* Price & remove */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'space-between', minWidth: 80 }}>
-        <button onClick={handleRemove} style={{ padding: 4, borderRadius: 6, border: 'none', background: 'none', cursor: 'pointer', color: '#64748b' }}
+      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginTop: 8, paddingTop: 8, borderTop: '1px solid #f1f5f9' }}>
+        <button onClick={handleRemove} style={{ padding: 6, borderRadius: 6, border: 'none', background: 'none', cursor: 'pointer', color: '#64748b', fontSize: 12 }}
           onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#dc2626'; (e.currentTarget as HTMLButtonElement).style.background = '#fef2f2'; }}
           onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '#64748b'; (e.currentTarget as HTMLButtonElement).style.background = 'none'; }}
         >
@@ -186,8 +191,8 @@ function CartItemCard({
           </svg>
         </button>
         <div style={{ textAlign: 'right' }}>
-          <div style={{ fontFamily: "'Sora', sans-serif", fontSize: 16, fontWeight: 700, color: '#0d4f5c' }}>{fmt(item.unitPrice * item.quantity)}</div>
-          <div style={{ fontSize: 11, color: '#64748b', marginTop: 1 }}>{fmt(item.unitPrice)} / pack</div>
+          <div style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, color: '#0d4f5c' }}>{fmt(item.unitPrice * item.quantity)}</div>
+          <div style={{ fontSize: 10, color: '#64748b', marginTop: 1 }}>{fmt(item.unitPrice)} / pack</div>
         </div>
       </div>
     </div>
@@ -354,10 +359,10 @@ export const Cart = () => {
   if (items.length === 0) return <EmptyCart />;
 
   return (
-    <div style={{ maxWidth: 980, margin: '0 auto', padding: '1.5rem 1rem 2rem', fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ maxWidth: 980, margin: '0 auto', padding: '1rem 0.75rem 2rem', fontFamily: "'DM Sans', sans-serif" }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-        <h1 style={{ fontFamily: "'Sora', sans-serif", fontSize: 22, fontWeight: 700, color: '#0d4f5c', display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+        <h1 style={{ fontFamily: "'Sora', sans-serif", fontSize: 18, fontWeight: 700, color: '#0d4f5c', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0d4f5c" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
           </svg>
@@ -372,7 +377,11 @@ export const Cart = () => {
       </div>
 
       {/* Layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 320px', gap: 20, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr)', gap: 20, alignItems: 'start' }}>
+        {/* Mobile Order Summary */}
+        <div style={{ display: 'block', marginBottom: 20 }}>
+          <OrderSummary subtotal={subtotal} itemCount={items.length} onCheckout={handleCheckout} />
+        </div>
         {/* Left */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {/* Rx banner */}
@@ -404,8 +413,10 @@ export const Cart = () => {
           <SuggestedItems items={SUGGESTED_ITEMS} onAdd={() => {}} />
         </div>
 
-        {/* Right */}
-        <OrderSummary subtotal={subtotal} itemCount={items.length} onCheckout={handleCheckout} />
+        {/* Desktop Order Summary */}
+        <div style={{ display: 'none' }}>
+          <OrderSummary subtotal={subtotal} itemCount={items.length} onCheckout={handleCheckout} />
+        </div>
       </div>
     </div>
   );
