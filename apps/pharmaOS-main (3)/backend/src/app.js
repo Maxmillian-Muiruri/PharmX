@@ -12,6 +12,8 @@ import authRouter from './routes/auth.js'
 import { tokenBlacklist } from './controllers/auth.js'
 import productsRouter from './routes/products.js'
 import ordersRouter from './routes/orders.js'
+import cartRouter from './routes/cart.routes.js'
+import orderManagementRouter from './routes/order.routes.js'
 import alertsRouter from './routes/alerts.js'
 import transactionsRouter from './routes/transactions.js'
 import analyticsRouter from './routes/analytics.js'
@@ -68,6 +70,8 @@ app.use('/api', authenticate)
 // Protected API Routes
 app.use('/api/products', productsRouter)
 app.use('/api/orders', ordersRouter)
+app.use('/api/cart', cartRouter)
+app.use('/api/user-orders', orderManagementRouter)
 app.use('/api/alerts', alertsRouter)
 app.use('/api/transactions', transactionsRouter)
 app.use('/api/analytics', analyticsRouter)
