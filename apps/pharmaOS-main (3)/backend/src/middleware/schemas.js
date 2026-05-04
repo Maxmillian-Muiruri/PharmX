@@ -32,3 +32,23 @@ export const updateOrderStatusSchema = z.object({
 export const promptSchema = z.object({
   query: z.string().min(1).max(500),
 })
+
+export const prescriptionSchema = z.object({
+  patientName: z.string().min(1),
+  phoneNumber: z.string().min(1),
+  email: z.string().email(),
+  doctorName: z.string().min(1),
+  hospitalName: z.string().min(1),
+  address: z.string().min(1),
+  notes: z.string().optional(),
+  files: z
+    .array(
+      z.object({
+        name: z.string(),
+        size: z.number(),
+        type: z.string(),
+        dataUrl: z.string(),
+      }),
+    )
+    .min(1),
+})

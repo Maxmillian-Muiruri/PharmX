@@ -44,7 +44,18 @@ export async function authenticate(req, res, next) {
     // Attach user from DB to ensure it still exists
     const user = await prisma.user.findUnique({
       where: { id: payload.sub },
-      select: { id: true, email: true, userType: true, isActive: true },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        userType: true,
+        isActive: true,
+        phone: true,
+        gender: true,
+        dateOfBirth: true,
+        address: true,
+        profilePicture: true,
+      },
     })
 
     if (!user) {
