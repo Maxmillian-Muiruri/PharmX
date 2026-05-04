@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { CART_URL, ROOT_URL_PREFIX, navLinks } from "../utils";
 import { useCart } from "../context/CartContext";
 import { ReusableSearchBar } from "./dev/core";
+import { User, LogOut } from "lucide-react";
 
 type HeaderProps = {
   cartItemCount?: number;
@@ -13,10 +14,53 @@ export function Header({ cartItemCount, onCartClick }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [atBottom, setAtBottom] = useState(false);
   const [passedHowItWorks, setPassedHowItWorks] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userData, setUserData] = useState<{ username?: string; email?: string; profilePicture?: string } | null>(null);
   const { getItemCount } = useCart();
+  const navigate = useNavigate();
 
   // Use context value if props not provided
   const actualCartItemCount = cartItemCount ?? getItemCount();
+
+  // Check auth status
+  useEffect(() => {
+    const checkLoginStatus = () => {
+      const user = localStorage.getItem('pharmacie_user');
+      if (user) {
+        setIsLoggedIn(true);
+        setUserData(JSON.parse(user));
+      } else {
+        setIsLoggedIn(false);
+        setUserData(null);
+      }
+    };
+
+    checkLoginStatus();
+
+    // Listen for auth changes
+    const handleAuthChange = () => checkLoginStatus();
+    window.addEventListener('auth-change', handleAuthChange);
+    window.addEventListener('storage', checkLoginStatus);
+
+    return () => {
+      window.removeEventListener('auth-change', handleAuthChange);
+      window.removeEventListener('storage', checkLoginStatus);
+    };
+  }, []);
+
+  const handleAccountClick = () => {
+    if (isLoggedIn) {
+      navigate('/profile');
+    } else {
+      navigate('/auth');
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('pharmacie_user');
+    window.dispatchEvent(new Event('auth-change'));
+    navigate('/');
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -95,28 +139,57 @@ export function Header({ cartItemCount, onCartClick }: HeaderProps) {
 
             {/* Actions */}
             <div className="flex items-center gap-4 shrink-0">
-              <button
-                className={`items-center gap-2 text-sm transition-colors hidden md:flex ${
-                  atBottom || passedHowItWorks
-                    ? "text-white/70 hover:text-white"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              {/* Account - conditional based on login status */}
+              {isLoggedIn && userData ? (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleAccountClick}
+                    className={`flex items-center gap-2 transition-colors ${
+                      atBottom || passedHowItWorks
+                        ? "text-white/70 hover:text-white"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    <div className="w-8 h-8 rounded-full bg-teal-600 flex items-center justify-center overflow-hidden">
+                      {userData.profilePicture ? (
+                        <img
+                          src={userData.profilePicture}
+                          alt={userData.username}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <User className="w-4 h-4 text-white" />
+                      )}
+                    </div>
+                    <span className="hidden md:inline text-sm font-medium">
+                      {userData.username || 'User'}
+                    </span>
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className={`p-2 rounded-full transition-colors ${
+                      atBottom || passedHowItWorks
+                        ? "text-white/70 hover:text-white hover:bg-white/10"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-gray-100"
+                    }`}
+                    title="Logout"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={handleAccountClick}
+                  className={`flex items-center gap-2 text-sm transition-colors ${
+                    atBottom || passedHowItWorks
+                      ? "text-white/70 hover:text-white"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-                Account
-              </button>
+                  <User className="w-4 h-4" />
+                  <span className="hidden md:inline">Login / Register</span>
+                </button>
+              )}
 
               {onCartClick ? (
                 <button

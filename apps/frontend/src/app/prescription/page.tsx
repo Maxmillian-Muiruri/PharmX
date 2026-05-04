@@ -76,8 +76,13 @@ export const UploadPrescription = () => {
     try {
       setSubmitting(true);
       const storedFiles = await readFilesAsDataUrls(files);
+      const userJson = localStorage.getItem('pharmacie_user');
+      const userObj = userJson ? JSON.parse(userJson) : null;
+      const userId = userObj?.userId || null;
+
       const prescription: PrescriptionRequest = {
         id: createPrescriptionId(),
+        userId,
         ...form,
         files: storedFiles,
         createdAt: new Date().toISOString(),

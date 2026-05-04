@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, lazy, Suspense } from "react";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { APPContext } from "./context";
 import { AppLayout, Error404Page, ErrorPage } from "./components/dev/core";
@@ -8,10 +8,12 @@ import {
   CHECKOUT_URL,
   ORDERS_URL,
   ORDERDETAIL_URL,
-PRESCRIPTIONS_URL,
+  PRESCRIPTIONS_URL,
   PRESCRIPTION_URL,
   PRODUCTLIST_URL,
   SIGNUP_URL,
+  TRACK_URL,
+  PROFILE_URL,
 } from "./utils";
 import { Auth } from "./app/auth/page";
 import { HomePage } from "./app/page";
@@ -27,8 +29,22 @@ import { Checkout } from "./app/checkout/page";
 import MyOrders from "./app/my-orders/page";
 import UploadPrescription from "./app/prescription/page";
 import MyPrescriptions from "./app/prescriptions/page";
+import { TrackOrder } from "./trackorder/OrderTracking";
+import ProfilePage from "./app/profile/page";
 import { ToastProvider } from "./context/ToastContext";
 import { CartProvider } from "./context/CartContext";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+
+function OrderDetailWrapper() {
+  const OrderDetail = lazy(() => import('./app/orders/[id]/page'));
+  return (
+    <ProtectedRoute>
+      <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
+        <OrderDetail />
+      </Suspense>
+    </ProtectedRoute>
+  );
+}
 
 function App() {
   const {} = useContext(APPContext);
@@ -90,31 +106,67 @@ function App() {
         // checkout
         {
           path: CHECKOUT_URL,
-          Component: Checkout,
+          Component: () => (
+            <ProtectedRoute>
+              <Checkout />
+            </ProtectedRoute>
+          ),
+        },
+
+        // profile
+        {
+          path: PROFILE_URL,
+          Component: () => (
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          ),
         },
 
         // upload prescription
         {
           path: PRESCRIPTION_URL,
-          Component: UploadPrescription,
+          Component: () => (
+            <ProtectedRoute>
+              <UploadPrescription />
+            </ProtectedRoute>
+          ),
         },
 
         // my prescriptions
         {
           path: PRESCRIPTIONS_URL,
-          Component: MyPrescriptions,
+          Component: () => (
+            <ProtectedRoute>
+              <MyPrescriptions />
+            </ProtectedRoute>
+          ),
         },
 
         // my-orders
         {
           path: ORDERS_URL,
-          Component: MyOrders,
+          Component: () => (
+            <ProtectedRoute>
+              <MyOrders />
+            </ProtectedRoute>
+          ),
         },
 
-        // track order
+// track order (public - by order number)
+        {
+          path: TRACK_URL,
+          Component: TrackOrder,
+        },
+        {
+          path: "/track/:id",
+          Component: TrackOrder,
+        },
+
+        // order detail (for logged in users - by ID in URL)
         {
           path: ORDERDETAIL_URL,
-          lazy: () => import('./app/orders/[id]/page').then(module => ({ Component: module.default })),
+          Component: OrderDetailWrapper,
         },
 
         // contact

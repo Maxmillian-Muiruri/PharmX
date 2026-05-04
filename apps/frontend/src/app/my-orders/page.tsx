@@ -87,6 +87,7 @@ function OrderCard({ order }: { order: Order }) {
         {/* Action buttons — pushed right */}
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
           <button
+            onClick={() => navigate(`/track/${order.id}`)}
             style={{
               border: '1px solid #e2e8f0',
               borderRadius: 8,
@@ -175,9 +176,17 @@ const MyOrders = () => {
 
   useEffect(() => {
     const loadOrders = () => {
+      const userJson = localStorage.getItem('pharmacie_user');
+      const userObj = userJson ? JSON.parse(userJson) : null;
+      const currentUserId = userObj?.userId || null;
+
       const stored = getStoredOrders() as StoredOrder[];
+      const userOrders = stored.filter(order => 
+        order.userId && order.userId === currentUserId
+      );
+      
       setOrders(
-        stored.map((order) => ({
+        userOrders.map((order) => ({
           id: order.id,
           date: order.date,
           items: order.items.map((item) => ({

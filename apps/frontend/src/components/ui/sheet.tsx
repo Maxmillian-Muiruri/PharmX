@@ -90,17 +90,35 @@ const SheetTitle = React.forwardRef<
 ))
 SheetTitle.displayName = "SheetTitle"
 
+interface SheetTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  asChild?: boolean;
+}
+
 const SheetTrigger = React.forwardRef<
   HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement>
->(({ className, ...props }, ref) => {
+  SheetTriggerProps
+>(({ className, asChild = false, children, onClick, ...props }, ref) => {
   const { setOpen } = React.useContext(SheetContext);
+  
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    setOpen(true);
+    onClick?.(e);
+  };
+
+  if (asChild) {
+    return React.cloneElement(children as React.ReactElement<any>, {
+      onClick: handleClick,
+      ref,
+      ...props
+    });
+  }
+
   return (
     <button
       ref={ref}
       type="button"
       className={cn("", className)}
-      onClick={() => setOpen(true)}
+      onClick={handleClick}
       {...props}
     />
   )

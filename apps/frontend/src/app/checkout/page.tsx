@@ -258,9 +258,11 @@ function StepShipping({
       <div style={{ marginBottom: 14 }}>
         <Field label="Street Address" value={info.street} onChange={set('street')} required />
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
         <Field label="City"     value={info.city}  onChange={set('city')}  required />
         <Field label="State"    value={info.state} onChange={set('state')} required />
+      </div>
+      <div style={{ marginBottom: 20 }}>
         <Field label="ZIP Code" value={info.zip}   onChange={set('zip')}   required />
       </div>
 
@@ -385,11 +387,12 @@ function StepPayment({
       {payMethod === 'M-Pesa' && (
         <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{
-            background: '#f0f9ff',
-            border: '1px solid #0ea5e9',
-            borderRadius: 8,
-            padding: '12px',
-            marginBottom: 8
+            background: '#fff',
+            border: '1px solid #e2e8f0',
+            borderRadius: 16,
+            padding: '1rem',
+            position: 'sticky',
+            top: 16
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
               <div style={{ width: 24, height: 24, background: '#10b981', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -435,15 +438,17 @@ function StepPayment({
 // ─── Step 3: Review ───────────────────────────────────────────────────────────
 
 function StepReview({
-  items, onBack, onPlace, placing,
+  items,
+  onBack,
+  onPlace,
+  placing,
 }: {
   items: Array<{ name: string; quantity: number; unitPrice: number; image?: string }>;
   onBack: () => void;
   onPlace: () => void;
   placing: boolean;
 }) {
-  const [agreed,     setAgreed]     = useState(false);
-  const [newsletter, setNewsletter] = useState(false);
+  const [agreed, setAgreed] = useState(false);
 
   return (
     <div>
@@ -479,7 +484,6 @@ function StepReview({
           I agree to the <a href="#" style={{ color: '#0d4f5c' }}>Terms and Conditions</a> and <a href="#" style={{ color: '#0d4f5c' }}>Privacy Policy</a>
         </label>
         <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#374151', cursor: 'pointer' }}>
-          <input type="checkbox" checked={newsletter} onChange={e => setNewsletter(e.target.checked)} style={{ accentColor: '#0d4f5c' }} />
           Subscribe to our newsletter for health tips and exclusive offers
         </label>
       </div>
@@ -512,8 +516,6 @@ function StepReview({
     </div>
   );
 }
-
-// ─── Order Confirmed ──────────────────────────────────────────────────────────
 
 function OrderConfirmed({
   orderId,
@@ -684,8 +686,8 @@ export const Checkout = () => {
 
   const [step,     setStep]     = useState<Step>(1);
   const [placing,  setPlacing]  = useState(false);
-  const [confirmed,setConfirmed]= useState(false);
-  const [orderId,  setOrderId]  = useState('');
+  const [orderId, setOrderId]   = useState('');
+  const [confirmed, setConfirmed]= useState(false);
 
   const [delivery, setDelivery] = useState<DeliveryOption>('standard');
   const [payMethod,setPayMethod]= useState<PaymentMethod>(null);
@@ -720,16 +722,16 @@ export const Checkout = () => {
         image: i.image,
       }));
 
-  const handlePlace = () => {
+const handlePlace = () => {
     setPlacing(true);
-    
+
     // Show appropriate processing message based on payment method
     if (payMethod === 'M-Pesa') {
       addToast({ type: 'info', message: 'Sending STK push to your phone...', duration: 3000 });
     } else {
       addToast({ type: 'success', message: 'Processing your payment...', duration: 2000 });
     }
-    
+
     setTimeout(() => {
       const id = genOrderId();
       const subtotal = cartItems.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
@@ -741,8 +743,13 @@ export const Checkout = () => {
         hour: 'numeric',
         minute: '2-digit',
       });
+      const userJson = localStorage.getItem('pharmacie_user');
+      const userObj = userJson ? JSON.parse(userJson) : null;
+      const userId = userObj?.userId || null;
+
       const order: StoredOrder = {
         id,
+        userId,
         date: now,
         items: cartItems.map((item) => ({
           name: item.name,
@@ -776,8 +783,38 @@ export const Checkout = () => {
       } else {
         addToast({ type: 'success', message: 'Payment processed successfully!', duration: 3000 });
       }
-    }, payMethod === 'M-Pesa' ? 4000 : 2500); // Longer delay for M-Pesa to simulate STK process
+}, payMethod === 'M-Pesa' ? 4000 : 2500); // Longer delay for M-Pesa to simulate STK process
   };
+
+  if (!cartItems.length) {
+    return (
+      <div style={{ maxWidth: 760, margin: '0 auto', padding: '2rem 1rem', textAlign: 'center', fontFamily: "'DM Sans', sans-serif" }}>
+        <h1 style={{ fontFamily: "'Sora', sans-serif", fontSize: 24, fontWeight: 700, color: '#12251e', marginBottom: 10 }}>
+          Nothing to checkout yet
+        </h1>
+        <p style={{ fontSize: 14, color: '#64748b', marginBottom: 18 }}>
+          Add products to your cart or wait until a prescription request becomes available for payment.
+        </p>
+        <button
+          onClick={() => navigate('/products')}
+          style={{
+            height: 44,
+            border: 'none',
+            borderRadius: 12,
+            background: '#0d4f5c',
+            color: '#fff',
+            padding: '0 18px',
+            fontSize: 13,
+            fontWeight: 700,
+            cursor: 'pointer',
+            fontFamily: "'Sora', sans-serif",
+          }}
+        >
+          Browse Products
+        </button>
+      </div>
+    );
+  }
 
   if (!cartItems.length) {
     return (
@@ -824,15 +861,15 @@ export const Checkout = () => {
   }
 
   return (
-    <div style={{ maxWidth: 980, margin: '0 auto', padding: '1.5rem 1rem 3rem', fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ maxWidth: 980, margin: '0 auto', padding: '1rem 0.75rem 2rem', fontFamily: "'DM Sans', sans-serif" }}>
       {/* Page header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, color: '#64748b', fontSize: 13, fontFamily: 'inherit' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 5l-7 7 7 7" /></svg>
             Back to Shop
           </button>
-          <h1 style={{ fontFamily: "'Sora', sans-serif", fontSize: 24, fontWeight: 700, color: '#12251e' }}>Checkout</h1>
+          <h1 style={{ fontFamily: "'Sora', sans-serif", fontSize: 20, fontWeight: 700, color: '#12251e' }}>Checkout</h1>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: '#64748b' }}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0d4f5c" strokeWidth="2"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 018 0v4" /></svg>
@@ -842,9 +879,9 @@ export const Checkout = () => {
 
       <StepIndicator current={step} />
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 300px', gap: 24, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr)', gap: 24, alignItems: 'start' }}>
         {/* Left: form */}
-        <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 16, padding: '1.5rem' }}>
+        <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 16, padding: '1rem' }}>
           {prescriptionData ? (
             <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 12, padding: '12px 14px', marginBottom: 20 }}>
               <div style={{ fontSize: 12, color: '#1d4ed8', textTransform: 'uppercase', letterSpacing: '.08em', fontWeight: 700, marginBottom: 6 }}>

@@ -629,7 +629,7 @@ export const ProductList = () => {
                 </div>
 
                 <Sheet>
-                  <SheetTrigger>
+                  <SheetTrigger asChild>
                     <Button variant="outline" className="lg:hidden">
                       <SlidersHorizontal className="h-4 w-4 mr-2" />
                       Filters

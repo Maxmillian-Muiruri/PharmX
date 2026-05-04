@@ -21,7 +21,16 @@ export const MyPrescriptions = () => {
 
   useEffect(() => {
     const load = () => {
-      setItems(getStoredPrescriptions());
+      const userJson = localStorage.getItem('pharmacie_user');
+      const userObj = userJson ? JSON.parse(userJson) : null;
+      const currentUserId = userObj?.userId || null;
+
+      const allPrescriptions = getStoredPrescriptions();
+      const userPrescriptions = allPrescriptions.filter(p => 
+        p.userId && p.userId === currentUserId
+      );
+      
+      setItems(userPrescriptions);
       const currentCheckoutId = getCheckoutPrescriptionId();
       setActiveCheckoutId(
         currentCheckoutId && getPrescriptionById(currentCheckoutId)?.status === "available"
