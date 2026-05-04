@@ -356,6 +356,10 @@ export const Cart = () => {
     navigate('/checkout');
   };
 
+  const handleClearCart = () => {
+    clearCart();
+  };
+
   if (items.length === 0) return <EmptyCart />;
 
   return (
@@ -371,7 +375,7 @@ export const Cart = () => {
             {items.length} item{items.length !== 1 ? 's' : ''}
           </span>
         </h1>
-        <button onClick={() => clearCart()} style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: '6px 14px', fontSize: 12, color: '#64748b', cursor: 'pointer', background: 'none', fontFamily: 'inherit' }}>
+        <button onClick={handleClearCart} style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: '6px 14px', fontSize: 12, color: '#64748b', cursor: 'pointer', background: 'none', fontFamily: 'inherit' }}>
           Clear all
         </button>
       </div>
