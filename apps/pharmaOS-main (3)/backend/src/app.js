@@ -9,8 +9,10 @@ import { authenticate, setTokenBlacklist } from './middleware/auth.js'
 
 // Import routes
 import authRouter from './routes/auth.js'
+import prescriptionsRouter from './routes/prescriptions.js'
 import { tokenBlacklist } from './controllers/auth.js'
 import productsRouter from './routes/products.js'
+import publicProductsRouter from './routes/publicProducts.js'
 import ordersRouter from './routes/orders.js'
 import cartRouter from './routes/cart.routes.js'
 import orderManagementRouter from './routes/order.routes.js'
@@ -68,6 +70,7 @@ app.use('/api/auth', authRouter)
 app.use('/api', authenticate)
 
 // Protected API Routes
+app.use('/api/prescriptions', prescriptionsRouter)
 app.use('/api/products', productsRouter)
 app.use('/api/orders', ordersRouter)
 app.use('/api/cart', cartRouter)
