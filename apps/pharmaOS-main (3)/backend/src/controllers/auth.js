@@ -68,7 +68,7 @@ export async function refreshToken(req, res, next) {
     // Verify user still exists
     const user = await prisma.user.findUnique({
       where: { id: payload.sub },
-      select: { id: true, email: true, userType: true, isActive: true },
+      select: { id: true, email: true, name: true, userType: true, isActive: true },
     })
 
     if (!user) {
@@ -98,6 +98,64 @@ export async function refreshToken(req, res, next) {
           userType: user.userType,
           isActive: user.isActive,
         },
+      },
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+
+/**
+ * POST /api/auth/register
+ * Register a new customer
+ */
+export async function register(req, res, next) {
+  try {
+    const { email, password, name, phone } = req.body
+
+    if (!email || !password || !name) {
+      throw new AppError('Email, password, and name are required', 400, 'VALIDATION_ERROR')
+    }
+
+    // Check if user already exists
+    const existing = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+    })
+    if (existing) {
+      throw new AppError('User already exists', 409, 'USER_EXISTS')
+    }
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 12)
+
+    // Create user with CUSTOMER role
+    const user = await prisma.user.create({
+      data: {
+        email: email.toLowerCase(),
+        password: hashedPassword,
+        name,
+        phone,
+        userType: 'CUSTOMER',
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        userType: true,
+        isActive: true,
+      },
+    })
+
+    // Generate tokens
+    const token = signAccessToken(user.id)
+    const refreshToken = signRefreshToken(user.id)
+
+    res.json({
+      success: true,
+      data: {
+        token,
+        refreshToken,
+        user,
       },
     })
   } catch (err) {
@@ -151,6 +209,49 @@ export async function login(req, res, next) {
 }
 
 /**
+ * PUT /api/auth/profile
+ * Update the currently authenticated user's profile
+ */
+export async function updateProfile(req, res, next) {
+  try {
+    const { name, phone, gender, dateOfBirth, address, profilePicture } = req.body
+    const userId = req.user.id
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        name,
+        phone,
+        gender,
+        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
+        address,
+        profilePicture,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        phone: true,
+        gender: true,
+        dateOfBirth: true,
+        address: true,
+        profilePicture: true,
+        userType: true,
+        isActive: true,
+      },
+    })
+
+    res.json({
+      success: true,
+      data: updatedUser,
+      message: 'Profile updated successfully',
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+
+/**
  * GET /api/auth/me
  * Returns the currently authenticated user (req.user is set by auth middleware)
  */
@@ -172,12 +273,10 @@ export async function logout(req, res) {
     try {
       const payload = jwt.verify(token, process.env.JWT_SECRET)
       tokenBlacklist.add(token)
-      // Also blacklist refresh token if provided
       if (req.body.refreshToken) {
         tokenBlacklist.add(req.body.refreshToken)
       }
     } catch (err) {
-      // Token might be expired, still blacklist it
       tokenBlacklist.add(token)
     }
   }
