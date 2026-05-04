@@ -1,10 +1,11 @@
 import { Router } from 'express';
+import { getOrderItems, trackOrder } from '../controllers/orders.controller';
 
 const router = Router();
 
-router.get('/', (req, res) => {
-  res.json({ message: 'Orders endpoint' });
-});
+router.get('/', getOrderItems);
+
+router.get('/track/:id', trackOrder);
 
 router.post('/', (req, res) => {
   res.json({ message: 'Create order' });
