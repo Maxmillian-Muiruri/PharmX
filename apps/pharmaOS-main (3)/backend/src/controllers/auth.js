@@ -150,7 +150,7 @@ export async function register(req, res, next) {
     const token = signAccessToken(user.id)
     const refreshToken = signRefreshToken(user.id)
 
-    res.json({
+    res.status(201).json({
       success: true,
       data: {
         token,

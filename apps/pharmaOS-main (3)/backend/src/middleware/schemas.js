@@ -23,7 +23,11 @@ export const createOrderSchema = z.object({
   customerPhone: z.string().min(1),
   productId: z.string().uuid(),
   quantity: z.number().int().min(1),
-})
+  totalAmount: z.number().optional(),
+  shippingAddress: z.any().optional(),
+  estimatedDelivery: z.string().optional(),
+  paymentMethod: z.string().optional(),
+}).passthrough()
 
 export const updateOrderStatusSchema = z.object({
   status: z.enum(['pending', 'processing', 'completed', 'cancelled']),

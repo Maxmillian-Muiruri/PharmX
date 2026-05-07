@@ -3,19 +3,25 @@ import {
   getAllOrders,
   createOrder,
   updateOrderStatus,
-  updateOrder
+  updateOrder,
 } from '../controllers/orderController.js'
 import { validate } from '../middleware/validate.js'
 import { createOrderSchema, updateOrderStatusSchema } from '../middleware/schemas.js'
 import { roleGuard } from '../middleware/roleGuard.js'
+import { authenticate } from '../middleware/auth.js'
 
 const router = Router()
 
-// Apply role guard to all order routes
+// All routes require authentication
+router.use(authenticate)
+
+// Customer can create orders and view their own orders
+router.post('/', validate(createOrderSchema), createOrder)
+router.get('/', getAllOrders)  // getAllOrders handles ?mine=true filtering
+
+// Staff-only routes (order management, status updates, edits)
 router.use(roleGuard(['ADMIN', 'SUPER_ADMIN', 'PHARMACIST', 'MANAGER', 'DISPATCH', 'RIDER']))
 
-router.get('/', getAllOrders)
-router.post('/', validate(createOrderSchema), createOrder)
 router.put('/:id', validate(createOrderSchema), updateOrder)
 router.put('/:id/status', validate(updateOrderStatusSchema), updateOrderStatus)
 

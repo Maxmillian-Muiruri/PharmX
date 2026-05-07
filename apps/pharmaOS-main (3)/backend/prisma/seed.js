@@ -17,6 +17,11 @@ function daysAgo(days) {
   return date
 }
 
+// Helper to generate unique order number
+function generateOrderNumber() {
+  return 'ORD-' + Math.random().toString(36).toUpperCase().slice(2, 8)
+}
+
 async function main() {
   console.log('🌱 Starting seed...')
 
@@ -167,39 +172,39 @@ async function main() {
   ])
   console.log(`✅ Created ${products.length} products`)
 
-  // ===== ORDERS =====
-  // Pending orders
-  await Promise.all([
-    prisma.order.create({ data: { customerName: 'James Kamau', customerPhone: '0712345678', productId: products[0].id, quantity: 2, totalAmount: 500.00, status: 'pending', customerId: customers[4].id } }),
-    prisma.order.create({ data: { customerName: 'Mary Wanjiku', customerPhone: '0723456789', productId: products[1].id, quantity: 5, totalAmount: 250.00, status: 'pending', customerId: customers[3].id } }),
-    prisma.order.create({ data: { customerName: 'John Mwangi', customerPhone: '0734567890', productId: products[2].id, quantity: 3, totalAmount: 240.00, status: 'pending' } }),
-    prisma.order.create({ data: { customerName: 'Grace Akinyi', customerPhone: '0745678901', productId: products[3].id, quantity: 1, totalAmount: 120.00, status: 'pending', customerId: customers[6].id } }),
-    prisma.order.create({ data: { customerName: 'Peter Kipchoge', customerPhone: '0756789012', productId: products[4].id, quantity: 4, totalAmount: 400.00, status: 'pending', customerId: customers[8].id } }),
-  ])
-  // Processing orders
-  await Promise.all([
-    prisma.order.create({ data: { customerName: 'Sarah Chebet', customerPhone: '0767890123', productId: products[5].id, quantity: 2, totalAmount: 360.00, status: 'processing' } }),
-    prisma.order.create({ data: { customerName: 'David Mutua', customerPhone: '0778901234', productId: products[6].id, quantity: 3, totalAmount: 270.00, status: 'processing' } }),
-    prisma.order.create({ data: { customerName: 'Lucy Njeri', customerPhone: '0789012345', productId: products[7].id, quantity: 1, totalAmount: 350.00, status: 'processing', customerId: customers[9].id } }),
-  ])
-  // Completed orders (spread over past 30 days for analytics)
-  await Promise.all([
-    prisma.order.create({ data: { customerName: 'Michael Otieno', customerPhone: '0790123456', productId: products[0].id, quantity: 5, totalAmount: 1250.00, status: 'completed', createdAt: daysAgo(28), paymentMethod: 'cash', amountPaid: 1250.00, amountDue: 0 } }),
-    prisma.order.create({ data: { customerName: 'Anne Wambui', customerPhone: '0701234567', productId: products[1].id, quantity: 10, totalAmount: 500.00, status: 'completed', createdAt: daysAgo(25), paymentMethod: 'mpesa', amountPaid: 500.00, amountDue: 0 } }),
-    prisma.order.create({ data: { customerName: 'Robert Kiplagat', customerPhone: '0712345679', productId: products[2].id, quantity: 4, totalAmount: 320.00, status: 'completed', createdAt: daysAgo(22), paymentMethod: 'cash', amountPaid: 320.00, amountDue: 0 } }),
-    prisma.order.create({ data: { customerName: 'Elizabeth Adhiambo', customerPhone: '0723456780', productId: products[3].id, quantity: 6, totalAmount: 720.00, status: 'completed', createdAt: daysAgo(19), paymentMethod: 'mpesa', amountPaid: 500.00, amountDue: 220.00 } }),
-    prisma.order.create({ data: { customerName: 'Francis Wekesa', customerPhone: '0734567891', productId: products[4].id, quantity: 3, totalAmount: 300.00, status: 'completed', createdAt: daysAgo(16), paymentMethod: 'cash', amountPaid: 300.00, amountDue: 0 } }),
-    prisma.order.create({ data: { customerName: 'Catherine Nyambura', customerPhone: '0745678902', productId: products[5].id, quantity: 2, totalAmount: 360.00, status: 'completed', createdAt: daysAgo(13), paymentMethod: 'card', amountPaid: 360.00, amountDue: 0 } }),
-    prisma.order.create({ data: { customerName: 'Daniel Kimani', customerPhone: '0756789013', productId: products[6].id, quantity: 8, totalAmount: 720.00, status: 'completed', createdAt: daysAgo(10), paymentMethod: 'mpesa', amountPaid: 720.00, amountDue: 0 } }),
-    prisma.order.create({ data: { customerName: 'Walk In Customer', customerPhone: '0712345678', productId: products[8].id, quantity: 3, totalAmount: 600.00, status: 'completed', createdAt: daysAgo(7), paymentMethod: 'cash', amountPaid: 600.00, amountDue: 0 } }),
-    prisma.order.create({ data: { customerName: 'Nairobi Hospital', customerPhone: '0722334455', productId: products[9].id, quantity: 20, totalAmount: 1700.00, status: 'completed', createdAt: daysAgo(5), paymentMethod: 'invoice', amountPaid: 1000.00, amountDue: 700.00, customerId: customers[1].id } }),
-    prisma.order.create({ data: { customerName: 'City Pharmacy Mombasa', customerPhone: '0700112233', productId: products[10].id, quantity: 10, totalAmount: 800.00, status: 'completed', createdAt: daysAgo(3), paymentMethod: 'mpesa', amountPaid: 800.00, amountDue: 0, customerId: customers[2].id } }),
-    prisma.order.create({ data: { customerName: 'Aga Khan Hospital', customerPhone: '0733445566', productId: products[11].id, quantity: 15, totalAmount: 5250.00, status: 'completed', createdAt: daysAgo(1), paymentMethod: 'invoice', amountPaid: 3000.00, amountDue: 2250.00, customerId: customers[5].id } }),
-  ])
-  // Cancelled order
-  await prisma.order.create({
-    data: { customerName: 'Jane Moraa', customerPhone: '0767890124', productId: products[7].id, quantity: 2, totalAmount: 700.00, status: 'cancelled' },
-  })
+   // ===== ORDERS =====
+   // Pending orders
+   await Promise.all([
+     prisma.order.create({ data: { orderNumber: generateOrderNumber(), customerName: 'James Kamau', customerPhone: '0712345678', productId: products[0].id, quantity: 2, totalAmount: 500.00, status: 'pending', customerId: customers[4].id } }),
+     prisma.order.create({ data: { orderNumber: generateOrderNumber(), customerName: 'Mary Wanjiku', customerPhone: '0723456789', productId: products[1].id, quantity: 5, totalAmount: 250.00, status: 'pending', customerId: customers[3].id } }),
+     prisma.order.create({ data: { orderNumber: generateOrderNumber(), customerName: 'John Mwangi', customerPhone: '0734567890', productId: products[2].id, quantity: 3, totalAmount: 240.00, status: 'pending' } }),
+     prisma.order.create({ data: { orderNumber: generateOrderNumber(), customerName: 'Grace Akinyi', customerPhone: '0745678901', productId: products[3].id, quantity: 1, totalAmount: 120.00, status: 'pending', customerId: customers[6].id } }),
+     prisma.order.create({ data: { orderNumber: generateOrderNumber(), customerName: 'Peter Kipchoge', customerPhone: '0756789012', productId: products[4].id, quantity: 4, totalAmount: 400.00, status: 'pending', customerId: customers[8].id } }),
+   ])
+   // Processing orders
+   await Promise.all([
+     prisma.order.create({ data: { orderNumber: generateOrderNumber(), customerName: 'Sarah Chebet', customerPhone: '0767890123', productId: products[5].id, quantity: 2, totalAmount: 360.00, status: 'processing' } }),
+     prisma.order.create({ data: { orderNumber: generateOrderNumber(), customerName: 'David Mutua', customerPhone: '0778901234', productId: products[6].id, quantity: 3, totalAmount: 270.00, status: 'processing' } }),
+     prisma.order.create({ data: { orderNumber: generateOrderNumber(), customerName: 'Lucy Njeri', customerPhone: '0789012345', productId: products[7].id, quantity: 1, totalAmount: 350.00, status: 'processing', customerId: customers[9].id } }),
+   ])
+   // Completed orders (spread over past 30 days for analytics)
+   await Promise.all([
+     prisma.order.create({ data: { orderNumber: generateOrderNumber(), customerName: 'Michael Otieno', customerPhone: '0790123456', productId: products[0].id, quantity: 5, totalAmount: 1250.00, status: 'completed', createdAt: daysAgo(28), paymentMethod: 'cash', amountPaid: 1250.00, amountDue: 0 } }),
+     prisma.order.create({ data: { orderNumber: generateOrderNumber(), customerName: 'Anne Wambui', customerPhone: '0701234567', productId: products[1].id, quantity: 10, totalAmount: 500.00, status: 'completed', createdAt: daysAgo(25), paymentMethod: 'mpesa', amountPaid: 500.00, amountDue: 0 } }),
+     prisma.order.create({ data: { orderNumber: generateOrderNumber(), customerName: 'Robert Kiplagat', customerPhone: '0712345679', productId: products[2].id, quantity: 4, totalAmount: 320.00, status: 'completed', createdAt: daysAgo(22), paymentMethod: 'cash', amountPaid: 320.00, amountDue: 0 } }),
+     prisma.order.create({ data: { orderNumber: generateOrderNumber(), customerName: 'Elizabeth Adhiambo', customerPhone: '0723456780', productId: products[3].id, quantity: 6, totalAmount: 720.00, status: 'completed', createdAt: daysAgo(19), paymentMethod: 'mpesa', amountPaid: 500.00, amountDue: 220 } }),
+     prisma.order.create({ data: { orderNumber: generateOrderNumber(), customerName: 'Francis Wekesa', customerPhone: '0734567891', productId: products[4].id, quantity: 3, totalAmount: 300.00, status: 'completed', createdAt: daysAgo(16), paymentMethod: 'cash', amountPaid: 300.00, amountDue: 0 } }),
+     prisma.order.create({ data: { orderNumber: generateOrderNumber(), customerName: 'Catherine Nyambura', customerPhone: '0745678902', productId: products[5].id, quantity: 2, totalAmount: 360.00, status: 'completed', createdAt: daysAgo(13), paymentMethod: 'card', amountPaid: 360.00, amountDue: 0 } }),
+     prisma.order.create({ data: { orderNumber: generateOrderNumber(), customerName: 'Daniel Kimani', customerPhone: '0756789013', productId: products[6].id, quantity: 8, totalAmount: 720.00, status: 'completed', createdAt: daysAgo(10), paymentMethod: 'mpesa', amountPaid: 720.00, amountDue: 0 } }),
+     prisma.order.create({ data: { orderNumber: generateOrderNumber(), customerName: 'Walk In Customer', customerPhone: '0712345678', productId: products[8].id, quantity: 3, totalAmount: 600.00, status: 'completed', createdAt: daysAgo(7), paymentMethod: 'cash', amountPaid: 600.00, amountDue: 0 } }),
+     prisma.order.create({ data: { orderNumber: generateOrderNumber(), customerName: 'Nairobi Hospital', customerPhone: '0722334455', productId: products[9].id, quantity: 20, totalAmount: 1700.00, status: 'completed', createdAt: daysAgo(5), paymentMethod: 'invoice', amountPaid: 1000.00, amountDue: 700.00, customerId: customers[1].id } }),
+     prisma.order.create({ data: { orderNumber: generateOrderNumber(), customerName: 'City Pharmacy Mombasa', customerPhone: '0700112233', productId: products[10].id, quantity: 10, totalAmount: 800.00, status: 'completed', createdAt: daysAgo(3), paymentMethod: 'mpesa', amountPaid: 800.00, amountDue: 0, customerId: customers[2].id } }),
+     prisma.order.create({ data: { orderNumber: generateOrderNumber(), customerName: 'Aga Khan Hospital', customerPhone: '0733445566', productId: products[11].id, quantity: 15, totalAmount: 5250.00, status: 'completed', createdAt: daysAgo(1), paymentMethod: 'invoice', amountPaid: 3000.00, amountDue: 2250.00, customerId: customers[5].id } }),
+   ])
+   // Cancelled order
+   await prisma.order.create({
+     data: { orderNumber: generateOrderNumber(), customerName: 'Jane Moraa', customerPhone: '0767890124', productId: products[7].id, quantity: 2, totalAmount: 700.00, status: 'cancelled' },
+   })
   console.log('✅ Created 18 orders')
 
   // ===== TRANSACTIONS =====

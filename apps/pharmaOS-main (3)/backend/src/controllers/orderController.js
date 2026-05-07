@@ -25,9 +25,14 @@ function canTransition(currentStatus, nextStatus) {
  */
 export async function getAllOrders(req, res, next) {
   try {
-    const { status, search, sort = 'createdAt', order = 'desc' } = req.query
+    const { status, search, sort = 'createdAt', order = 'desc', mine } = req.query
 
     const where = {}
+
+    // If mine=true OR user is CUSTOMER, filter by user's orders only
+    if (mine === 'true' || req.user.userType === 'CUSTOMER') {
+      where.userId = req.user.id
+    }
 
     if (status) {
       where.status = status
@@ -50,9 +55,9 @@ export async function getAllOrders(req, res, next) {
             id: true,
             name: true,
             unitPrice: true,
-          }
-        }
-      }
+          },
+        },
+      },
     })
 
     sendSuccess(res, 200, orders)
@@ -70,7 +75,7 @@ export async function createOrder(req, res, next) {
 
     // Fetch product to get price and check stock
     const product = await prisma.product.findUnique({
-      where: { id: productId }
+      where: { id: productId },
     })
 
     if (!product) {
@@ -80,23 +85,35 @@ export async function createOrder(req, res, next) {
     // Calculate total amount server-side
     const totalAmount = Number(product.unitPrice) * quantity
 
+    // Generate unique order number
+    const orderNumber = 'ORD-' + Math.random().toString(36).toUpperCase().slice(2, 8)
+
+    // Include userId for customer orders
+    const orderData = {
+      orderNumber,
+      customerName,
+      customerPhone,
+      productId,
+      quantity,
+      totalAmount,
+      status: 'pending',
+    }
+
+    // Add userId if user is CUSTOMER (to link order to user)
+    if (req.user.userType === 'CUSTOMER') {
+      orderData.userId = req.user.id
+    }
+
     const order = await prisma.order.create({
-      data: {
-        customerName,
-        customerPhone,
-        productId,
-        quantity,
-        totalAmount,
-        status: 'pending',
-      },
+      data: orderData,
       include: {
         product: {
           select: {
             id: true,
             name: true,
-          }
-        }
-      }
+          },
+        },
+      },
     })
 
     sendSuccess(res, 201, order, 'Order created successfully')
@@ -114,21 +131,21 @@ export async function updateOrder(req, res, next) {
     const { customerName, customerPhone, productId, quantity } = req.body
 
     const existingOrder = await prisma.order.findUnique({
-      where: { id }
+      where: { id },
     })
 
     if (!existingOrder) {
       return sendError(res, 404, 'Order not found', 'NOT_FOUND')
     }
-    
+
     // Cannot structurally modify completed or cancelled orders
     if (existingOrder.status === 'completed' || existingOrder.status === 'cancelled') {
-        return sendError(res, 400, 'Cannot edit finalized orders', 'FINALIZED')
+      return sendError(res, 400, 'Cannot edit finalized orders', 'FINALIZED')
     }
 
     // Fetch product to get updated price
     const product = await prisma.product.findUnique({
-      where: { id: productId }
+      where: { id: productId },
     })
 
     if (!product) {
@@ -147,8 +164,8 @@ export async function updateOrder(req, res, next) {
         totalAmount,
       },
       include: {
-        product: { select: { id: true, name: true } }
-      }
+        product: { select: { id: true, name: true } },
+      },
     })
 
     sendSuccess(res, 200, updatedOrder, 'Order updated successfully')
@@ -168,7 +185,7 @@ export async function updateOrderStatus(req, res, next) {
     // Fetch current order
     const order = await prisma.order.findUnique({
       where: { id },
-      include: { product: true }
+      include: { product: true },
     })
 
     if (!order) {
@@ -186,13 +203,13 @@ export async function updateOrderStatus(req, res, next) {
     } else if (newStatus === 'cancelled') {
       await prisma.order.update({
         where: { id },
-        data: { status: 'cancelled' }
+        data: { status: 'cancelled' },
       })
     } else {
       // Just update status for pending -> processing
       await prisma.order.update({
         where: { id },
-        data: { status: newStatus }
+        data: { status: newStatus },
       })
     }
 
@@ -204,9 +221,9 @@ export async function updateOrderStatus(req, res, next) {
           select: {
             id: true,
             name: true,
-          }
-        }
-      }
+          },
+        },
+      },
     })
 
     sendSuccess(res, 200, updatedOrder, 'Order status updated successfully')
@@ -222,10 +239,10 @@ export async function updateOrderStatus(req, res, next) {
  * Complete order with atomic DB transaction
  */
 async function completeOrder(orderId, order) {
-  return await prisma.$transaction(async (tx) => {
+  return await prisma.$transaction(async tx => {
     // Re-validate stock (race condition protection)
     const currentProduct = await tx.product.findUnique({
-      where: { id: order.productId }
+      where: { id: order.productId },
     })
 
     if (currentProduct.quantity < order.quantity) {
@@ -241,12 +258,12 @@ async function completeOrder(orderId, order) {
     // Decrement product quantity and recalculate status
     const newQty = currentProduct.quantity - order.quantity
     const newStatus = calculateProductStatus(newQty, currentProduct.expiryDate)
-    
+
     await tx.product.update({
       where: { id: order.productId },
-      data: { 
-        quantity: newQty, 
-        status: newStatus 
+      data: {
+        quantity: newQty,
+        status: newStatus,
       },
     })
 
@@ -265,11 +282,44 @@ async function completeOrder(orderId, order) {
     const threshold = parseInt(process.env.LOW_STOCK_THRESHOLD) || 10
     if (newQty < threshold) {
       await createAlertIfNotExists(
-        tx, 
-        order.productId, 
-        'low_stock', 
-        `${currentProduct.name} is running low (${newQty} units remaining)`
+        tx,
+        order.productId,
+        'low_stock',
+        `${currentProduct.name} is running low (${newQty} units remaining)`,
       )
     }
   })
+}
+
+/**
+ * Get order by ID or orderNumber for tracking (public - no auth required)
+ */
+export async function trackOrder(req, res, next) {
+  try {
+    const { identifier } = req.params
+
+    // Try to find by orderNumber first, then by UUID
+    const order = await prisma.order.findFirst({
+      where: {
+        OR: [{ orderNumber: identifier }, { id: identifier }],
+      },
+      include: {
+        product: {
+          select: {
+            id: true,
+            name: true,
+            unitPrice: true,
+          },
+        },
+      },
+    })
+
+    if (!order) {
+      return sendError(res, 404, 'Order not found', 'NOT_FOUND')
+    }
+
+    sendSuccess(res, 200, order)
+  } catch (error) {
+    next(error)
+  }
 }
