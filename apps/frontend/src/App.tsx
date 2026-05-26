@@ -33,6 +33,7 @@ import { TrackOrder } from "./trackorder/OrderTracking";
 import ProfilePage from "./app/profile/page";
 import { ToastProvider } from "./context/ToastContext";
 import { CartProvider } from "./context/CartContext";
+import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 function OrderDetailWrapper() {
@@ -47,7 +48,7 @@ function OrderDetailWrapper() {
 }
 
 function App() {
-  const {} = useContext(APPContext);
+  const { } = useContext(APPContext);
 
   const router = createBrowserRouter([
     {
@@ -67,6 +68,10 @@ function App() {
             {
               Component: Signin,
               index: true,
+            },
+            {
+              path: "signin",
+              Component: Signin,
             },
             {
               path: SIGNUP_URL,
@@ -153,7 +158,7 @@ function App() {
           ),
         },
 
-// track order (public - by order number)
+        // track order (public - by order number)
         {
           path: TRACK_URL,
           Component: TrackOrder,
@@ -186,9 +191,11 @@ function App() {
 
   return (
     <ToastProvider>
-      <CartProvider>
-        <RouterProvider router={router} />
-      </CartProvider>
+      <AuthProvider>
+        <CartProvider>
+          <RouterProvider router={router} />
+        </CartProvider>
+      </AuthProvider>
     </ToastProvider>
   );
 }

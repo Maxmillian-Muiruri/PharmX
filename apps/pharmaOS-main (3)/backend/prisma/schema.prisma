@@ -48,48 +48,42 @@ model Product {
   purchasePrice Decimal?       @db.Decimal(10, 2)
   supplierId    String?
   alerts        Alert[]
+  cartItems     CartItem[]
   orders        Order[]
+  prescriptions Prescription[]
   supplier      Supplier?      @relation(fields: [supplierId], references: [id])
   purchaseItems PurchaseItem[]
   transactions  Transaction[]
-  cartItems     CartItem[]
 }
 
 model Order {
-  id              String    @id @default(uuid())
-  orderNumber     String    @unique  // e.g., ORD-6Q46UJEI8
-  
-  // Support both registered and guest customers
-  userId          String?   // For registered customers
-  customerId      String?   // Reference to User model
-  customerName    String
-  customerPhone   String
-  customerEmail   String?
-  
-  productId       String
-  quantity        Int
-  totalAmount     Decimal   @db.Decimal(10, 2)
-  estimatedDelivery String?
-  status          OrderStatus @default(pending)
-  paymentMethod   String?
-  paymentStatus   PaymentStatus @default(pending)
-  transactionId   String?
-  
-  isPrescriptionOrder Boolean @default(false)
-  prescriptionId  String?
-  
-  shippingAddress Json?  // {street, city, state, zip}
-  notes           String?
-  amountDue       Decimal? @db.Decimal(10, 2)
-  amountPaid      Decimal? @db.Decimal(10, 2)
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  user            User?          @relation(fields: [userId], references: [id])
-  product         Product        @relation(fields: [productId], references: [id])
-  transaction     Transaction?
-  
+  id                  String        @id @default(uuid())
+  customerName        String
+  customerPhone       String
+  productId           String?
+  quantity            Int
+  totalAmount         Decimal       @db.Decimal(10, 2)
+  status              OrderStatus   @default(pending)
+  notes               String?
+  createdAt           DateTime      @default(now())
+  amountDue           Decimal?      @db.Decimal(10, 2)
+  amountPaid          Decimal?      @db.Decimal(10, 2)
+  customerEmail       String?
+  customerId          String?
+  estimatedDelivery   String?
+  isPrescriptionOrder Boolean       @default(false)
+  orderNumber         String        @unique
+  paymentMethod       String?
+  paymentStatus       PaymentStatus @default(pending)
+  prescriptionId      String?
+  shippingAddress     Json?
+  transactionId       String?
+  updatedAt           DateTime      @updatedAt
+  userId              String?
+  product             Product?      @relation(fields: [productId], references: [id])
+  user                User?         @relation(fields: [userId], references: [id])
+  transaction         Transaction?
+
   @@index([userId])
   @@index([orderNumber])
   @@index([status])
@@ -169,23 +163,23 @@ model Setting {
 }
 
 model User {
-  id            String         @id @default(uuid())
-  email         String         @unique
-  name          String         @default("")
-  phone         String?
-  gender        String?
-  dateOfBirth   DateTime?
-  address       String?
+  id             String         @id @default(uuid())
+  email          String         @unique
+  name           String         @default("")
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  address        String?
+  dateOfBirth    DateTime?
+  gender         String?
+  isActive       Boolean        @default(true)
+  password       String
+  phone          String?
   profilePicture String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  isActive      Boolean        @default(true)
-  password      String
-  userType      UserType       @default(ADMIN)
-  pharmacist    Pharmacist?
-  prescriptions Prescription[]
-  orders        Order[]
-  cartItems     CartItem[]
+  userType       UserType       @default(ADMIN)
+  cartItems      CartItem[]
+  orders         Order[]
+  pharmacist     Pharmacist?
+  prescriptions  Prescription[]
 }
 
 model CartItem {
@@ -195,13 +189,12 @@ model CartItem {
   quantity  Int      @default(1)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
   @@index([userId])
 }
-
 
 model Pharmacist {
   id            String   @id @default(uuid())
@@ -228,9 +221,12 @@ model Prescription {
   status         PrescriptionStatus @default(under_review)
   estimatedPrice Decimal?           @db.Decimal(10, 2)
   reviewNotes    String?
+  productId      String?
+  productQuantity Int              @default(1)
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
   user           User               @relation(fields: [userId], references: [id])
+  product        Product?           @relation(fields: [productId], references: [id])
 
   @@index([userId])
   @@index([status])
@@ -258,6 +254,7 @@ enum ProductStatus {
 enum OrderStatus {
   pending
   processing
+  out_for_delivery
   completed
   cancelled
 }

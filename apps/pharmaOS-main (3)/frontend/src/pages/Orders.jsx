@@ -20,6 +20,7 @@ const statusTabs = [
   { value: '', label: 'All' },
   { value: 'pending', label: 'Pending' },
   { value: 'processing', label: 'Processing' },
+  { value: 'out_for_delivery', label: 'Out for Delivery' },
   { value: 'completed', label: 'Completed' },
   { value: 'cancelled', label: 'Cancelled' },
 ]
@@ -30,7 +31,7 @@ export default function Orders() {
   const [statusFilter, setStatusFilter] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState(null)
-  
+
   const [formData, setFormData] = useState({
     customerName: '',
     customerPhone: '',
@@ -41,7 +42,7 @@ export default function Orders() {
   const [saving, setSaving] = useState(false)
   const [processing, setProcessing] = useState({})
 
-  const { orders, loading, refetch } = useOrders({ 
+  const { orders, loading, refetch } = useOrders({
     status: statusFilter || undefined,
     search: search || undefined,
   })
@@ -106,12 +107,12 @@ export default function Orders() {
 
   const getActionButtons = (order) => {
     const isProcessing = processing[order.id]
-    
+
     switch (order.status) {
       case 'pending':
         return (
-          <Button 
-            size="sm" 
+          <Button
+            size="sm"
             onClick={(e) => { e.stopPropagation(); handleStatusUpdate(order.id, 'processing'); }}
             loading={isProcessing}
           >
@@ -121,16 +122,16 @@ export default function Orders() {
       case 'processing':
         return (
           <div className="flex gap-2">
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               variant="primary"
-              onClick={(e) => { e.stopPropagation(); handleStatusUpdate(order.id, 'completed'); }}
+              onClick={(e) => { e.stopPropagation(); handleStatusUpdate(order.id, 'out_for_delivery'); }}
               loading={isProcessing}
             >
-              Complete
+              Mark as Out for Delivery
             </Button>
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               variant="danger"
               onClick={(e) => { e.stopPropagation(); handleStatusUpdate(order.id, 'cancelled'); }}
               loading={isProcessing}
@@ -140,38 +141,61 @@ export default function Orders() {
             </Button>
           </div>
         )
+      case 'out_for_delivery':
+        return (
+          <Button
+            size="sm"
+            variant="primary"
+            onClick={(e) => { e.stopPropagation(); handleStatusUpdate(order.id, 'completed'); }}
+            loading={isProcessing}
+          >
+            Mark as Delivered
+          </Button>
+        );
       default:
         return <span className="text-gray-400 text-sm">—</span>
     }
   }
 
   const columns = [
-    { header: 'Customer', accessor: 'customerName', render: (row) => (
-      <div>
-        <div className="font-medium text-gray-900">{row.customerName}</div>
-        <div className="text-xs text-gray-500">{row.customerPhone}</div>
-      </div>
-    )},
-    { header: 'Product', accessor: 'product', render: (row) => (
-      <span className="text-gray-700">{row.product?.name || 'Unknown'}</span>
-    )},
-    { header: 'Qty', accessor: 'quantity', align: 'center', render: (row) => (
-      <span>{row.quantity}</span>
-    )},
-    { header: 'Amount', accessor: 'totalAmount', align: 'right', render: (row) => (
-      <span className="font-medium">{formatCurrency(row.totalAmount)}</span>
-    )},
-    { header: 'Status', accessor: 'status', align: 'center', render: (row) => (
-      <Badge status={row.status} />
-    )},
-    { header: 'Date', accessor: 'createdAt', render: (row) => (
-      <span className="text-sm text-gray-500">{formatDate(row.createdAt)}</span>
-    )},
+    {
+      header: 'Customer', accessor: 'customerName', render: (row) => (
+        <div>
+          <div className="font-medium text-gray-900">{row.customerName}</div>
+          <div className="text-xs text-gray-500">{row.customerPhone}</div>
+        </div>
+      )
+    },
+    {
+      header: 'Product', accessor: 'product', render: (row) => (
+        <span className="text-gray-700">{row.product?.name || 'Unknown'}</span>
+      )
+    },
+    {
+      header: 'Qty', accessor: 'quantity', align: 'center', render: (row) => (
+        <span>{row.quantity}</span>
+      )
+    },
+    {
+      header: 'Amount', accessor: 'totalAmount', align: 'right', render: (row) => (
+        <span className="font-medium">{formatCurrency(row.totalAmount)}</span>
+      )
+    },
+    {
+      header: 'Status', accessor: 'status', align: 'center', render: (row) => (
+        <Badge status={row.status} />
+      )
+    },
+    {
+      header: 'Date', accessor: 'createdAt', render: (row) => (
+        <span className="text-sm text-gray-500">{formatDate(row.createdAt)}</span>
+      )
+    },
     { header: 'Action', align: 'right', render: (row) => getActionButtons(row) },
   ]
 
   return (
-    <PageWrapper 
+    <PageWrapper
       title="Orders"
       action={
         <Button onClick={handleOpenModal} className="w-full sm:w-auto">
@@ -185,11 +209,10 @@ export default function Orders() {
           <button
             key={tab.value}
             onClick={() => setStatusFilter(tab.value)}
-            className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
-              statusFilter === tab.value
-                ? 'bg-teal-600 text-white'
-                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-            }`}
+            className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${statusFilter === tab.value
+              ? 'bg-teal-600 text-white'
+              : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+              }`}
           >
             {tab.label}
           </button>

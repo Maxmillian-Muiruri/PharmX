@@ -110,11 +110,11 @@ function CartItemCard({
   };
 
   const stockConfig: Record<StockStatus, { dot: string; label: string; labelColor: string }> = {
-    in_stock:     { dot: '#1D9E75', label: 'In stock',              labelColor: '#0F6E56' },
-    low_stock:    { dot: '#EF9F27', label: `Only ${item.stockCount} left`, labelColor: '#BA7517' },
-    out_of_stock: { dot: '#E24B4A', label: 'Out of stock',           labelColor: '#E24B4A' },
+    in_stock: { dot: '#1D9E75', label: 'In stock', labelColor: '#0F6E56' },
+    low_stock: { dot: '#EF9F27', label: `Only ${item.stockCount} left`, labelColor: '#BA7517' },
+    out_of_stock: { dot: '#E24B4A', label: 'Out of stock', labelColor: '#E24B4A' },
   };
-  const stock = stockConfig[item.stockStatus];
+  const stock = stockConfig[item.stockStatus] || stockConfig.in_stock;
 
   return (
     <div
@@ -414,7 +414,7 @@ export const Cart = () => {
             />
           ))}
 
-          <SuggestedItems items={SUGGESTED_ITEMS} onAdd={() => {}} />
+          <SuggestedItems items={SUGGESTED_ITEMS} onAdd={() => { }} />
         </div>
 
         {/* Desktop Order Summary */}

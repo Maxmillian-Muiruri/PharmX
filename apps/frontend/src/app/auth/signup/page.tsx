@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { Mail, Lock, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import { useToast } from '../../../context/ToastContext';
+import { useAuth } from '../../../context/AuthContext';
 
 interface RegisterData {
   username: string;
@@ -23,47 +24,41 @@ export default function SignUpPage() {
     password: '',
     confirmPassword: '',
   });
+  const { register } = useAuth();
   const navigate = useNavigate();
+  const { addToast } = useToast();
 
-  const handleRegister = (e: FormEvent<HTMLFormElement>) => {
+  const handleRegister = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!registerData.username || !registerData.fullName || !registerData.email || !registerData.password || !registerData.confirmPassword) {
-      toast.error('Please fill in all fields');
+      addToast({ type: 'error', message: 'Please fill in all fields', duration: 3000 });
       return;
     }
 
     if (registerData.password.length < 8) {
-      toast.error('Password must be at least 8 characters');
+      addToast({ type: 'error', message: 'Password must be at least 8 characters', duration: 3000 });
       return;
     }
 
     if (registerData.password !== registerData.confirmPassword) {
-      toast.error('Passwords do not match');
+      addToast({ type: 'error', message: 'Passwords do not match', duration: 3000 });
       return;
     }
 
-    toast.loading('Creating your account...');
-    setTimeout(() => {
-      toast.dismiss();
-      
-      const user = {
-        userId: 'user_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9),
-        username: registerData.username,
-        fullName: registerData.fullName,
+    addToast({ type: 'info', message: 'Creating your account...', duration: 2000 });
+    try {
+      await register({
+        name: registerData.fullName,
         email: registerData.email,
-        loggedIn: true,
-        createdAt: new Date().toISOString(),
-      };
-      localStorage.setItem('pharmacie_user', JSON.stringify(user));
-      window.dispatchEvent(new Event('auth-change'));
-      
-      toast.success('Account created successfully!');
-      
-      setTimeout(() => {
-        navigate('/'); 
-      }, 1500);
-    }, 1500);
+        password: registerData.password,
+        phoneNumber: '', // Additional fields map can be expanded
+      });
+      addToast({ type: 'success', message: 'Account created successfully!', duration: 3000 });
+      navigate('/');
+    } catch (error: any) {
+      addToast({ type: 'error', message: error.response?.data?.error || 'Failed to create account', duration: 3000 });
+    }
   };
 
   return (
@@ -157,8 +152,8 @@ export default function SignUpPage() {
           </div>
         </div>
 
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           className="w-full py-3.5 bg-[#0d4f5c] text-white font-semibold rounded-lg cursor-pointer transition-all hover:bg-[#164e63] active:scale-[0.98] shadow-lg hover:shadow-xl mb-6"
         >
           Create account
@@ -166,8 +161,8 @@ export default function SignUpPage() {
 
         <div className="text-center text-gray-600">
           Already have an account?{' '}
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="text-[#0d4f5c] font-semibold cursor-pointer bg-none border-none p-0 hover:text-[#164e63] hover:underline"
             onClick={() => navigate('/auth')}
           >

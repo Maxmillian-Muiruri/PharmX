@@ -1,23 +1,24 @@
 import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { 
-  LayoutDashboard, 
-  ShoppingCart, 
-  Truck, 
-  Package, 
-  Users, 
-  UserSquare2, 
-  TrendingUp, 
-  TrendingDown, 
-  Receipt, 
-  Clock, 
-  BarChart3, 
+import {
+  LayoutDashboard,
+  ShoppingCart,
+  Truck,
+  Package,
+  Users,
+  UserSquare2,
+  TrendingUp,
+  TrendingDown,
+  Receipt,
+  Clock,
+  BarChart3,
   Settings,
   LogOut,
   ChevronDown,
   Menu,
-  X
+  X,
+  FileText,
 } from 'lucide-react'
 
 const navItems = [
@@ -31,24 +32,24 @@ const navItems = [
       { to: '/sales', label: 'Sale List' },
     ]
   },
-  { 
-    label: 'Purchases', 
+  {
+    label: 'Purchases',
     icon: Truck,
     subItems: [
       { to: '/purchases/new', label: 'Purchase New' },
       { to: '/purchases', label: 'Purchase List' },
     ]
   },
-  { 
-    label: 'Stock List', 
+  {
+    label: 'Stock List',
     icon: Receipt,
     subItems: [
       { to: '/stock/current', label: 'Current Stock' },
       { to: '/stock/expired', label: 'Expired Stock' },
     ]
   },
-  { 
-    label: 'Products', 
+  {
+    label: 'Products',
     icon: Package,
     subItems: [
       { to: '/products', label: 'Add Product' },
@@ -56,22 +57,24 @@ const navItems = [
       { to: '/products/barcodes', label: 'Print Barcode' },
     ]
   },
-  { 
-    label: 'Customer', 
+  {
+    label: 'Customer',
     icon: Users,
     subItems: [
       { to: '/customers/new', label: 'Add Customer' },
       { to: '/customers', label: 'All Customer' },
     ]
   },
-  { 
-    label: 'Supplier', 
+  {
+    label: 'Supplier',
     icon: UserSquare2,
     subItems: [
       { to: '/suppliers/new', label: 'Add Supplier' },
       { to: '/suppliers', label: 'All Supplier' },
     ]
   },
+  { to: '/orders', label: 'Online Orders', icon: Truck },
+  { to: '/prescriptions', label: 'Prescriptions', icon: FileText },
   { to: '/incomes', label: 'Incomes', icon: TrendingUp },
   { to: '/expenses', label: 'Expenses', icon: TrendingDown },
   { to: '/tax', label: 'Tax', icon: Receipt },
@@ -125,9 +128,9 @@ export default function Sidebar({ isOpen, onClose }) {
                 PharmaOS
               </span>
             </div>
-            
+
             {/* Close button - Mobile only */}
-            <button 
+            <button
               onClick={onClose}
               className="lg:hidden p-1 rounded-md hover:bg-white/10 transition-colors text-gray-400"
             >
@@ -135,111 +138,109 @@ export default function Sidebar({ isOpen, onClose }) {
             </button>
           </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto custom-scrollbar">
-          {navItems
-            .filter((item) => !item.adminOnly || user?.userType === 'ADMIN' || user?.userType === 'SUPER_ADMIN')
-            .map((item) => {
-              const Icon = item.icon
-              const isExpanded = expandedMenus[item.label]
-              
-              if (item.subItems) {
-                return (
-                  <div key={item.label} className="space-y-1 text-center w-full">
-                    <button
-                      onClick={() => isEffectiveOpen ? toggleMenu(item.label) : null}
-                      title={!isEffectiveOpen ? item.label : ''}
-                      className={`w-full flex items-center px-4 py-3 rounded-lg text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all group ${!isEffectiveOpen ? 'lg:justify-center' : 'justify-start'}`}
-                    >
-                      <Icon size={20} className="text-gray-400 group-hover:text-forty-primary shrink-0" />
-                      <span className={`text-left transition-all duration-300 overflow-hidden whitespace-nowrap ${!isEffectiveOpen ? 'lg:w-0 lg:opacity-0' : 'w-auto flex-1 opacity-100 ml-3'}`}>
-                        {item.label}
-                      </span>
-                      {isEffectiveOpen && (
-                        <ChevronDown size={16} className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
-                      )}
-                    </button>
-                    {isExpanded && isEffectiveOpen && (
-                      <div className="space-y-1">
-                        {item.subItems.map(subItem => (
-                          <NavLink
-                            key={subItem.to}
-                            to={subItem.to}
-                            onClick={onClose}
-                            className={({ isActive }) =>
-                              `block pl-2 pr-4 py-3 text-base font-medium transition-colors ${
-                                isActive ? 'text-forty-primary' : 'text-gray-400 hover:text-white'
-                              }`
-                            }
-                          >
-                            {subItem.label}
-                          </NavLink>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )
-              }
+          {/* Navigation */}
+          <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto custom-scrollbar">
+            {navItems
+              .filter((item) => !item.adminOnly || user?.userType === 'ADMIN' || user?.userType === 'SUPER_ADMIN')
+              .map((item) => {
+                const Icon = item.icon
+                const isExpanded = expandedMenus[item.label]
 
-              return (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  onClick={onClose}
-                  title={!isEffectiveOpen ? item.label : ''}
-                  className={({ isActive }) =>
-                    `flex items-center px-4 py-3 text-base font-medium transition-all duration-300 w-full ${
-                      isActive
+                if (item.subItems) {
+                  return (
+                    <div key={item.label} className="space-y-1 text-center w-full">
+                      <button
+                        onClick={() => isEffectiveOpen ? toggleMenu(item.label) : null}
+                        title={!isEffectiveOpen ? item.label : ''}
+                        className={`w-full flex items-center px-4 py-3 rounded-lg text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all group ${!isEffectiveOpen ? 'lg:justify-center' : 'justify-start'}`}
+                      >
+                        <Icon size={20} className="text-gray-400 group-hover:text-forty-primary shrink-0" />
+                        <span className={`text-left transition-all duration-300 overflow-hidden whitespace-nowrap ${!isEffectiveOpen ? 'lg:w-0 lg:opacity-0' : 'w-auto flex-1 opacity-100 ml-3'}`}>
+                          {item.label}
+                        </span>
+                        {isEffectiveOpen && (
+                          <ChevronDown size={16} className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                        )}
+                      </button>
+                      {isExpanded && isEffectiveOpen && (
+                        <div className="space-y-1">
+                          {item.subItems.map(subItem => (
+                            <NavLink
+                              key={subItem.to}
+                              to={subItem.to}
+                              onClick={onClose}
+                              className={({ isActive }) =>
+                                `block pl-2 pr-4 py-3 text-base font-medium transition-colors ${isActive ? 'text-forty-primary' : 'text-gray-400 hover:text-white'
+                                }`
+                              }
+                            >
+                              {subItem.label}
+                            </NavLink>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                }
+
+                return (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    onClick={onClose}
+                    title={!isEffectiveOpen ? item.label : ''}
+                    className={({ isActive }) =>
+                      `flex items-center px-4 py-3 text-base font-medium transition-all duration-300 w-full ${isActive
                         ? 'bg-white text-forty-dark rounded-full shadow-lg'
                         : 'text-gray-300 hover:text-white hover:bg-white/5 rounded-lg'
-                    } ${!isEffectiveOpen ? 'lg:justify-center' : 'justify-start'}`
-                  }
-                >
-                  {({ isActive }) => (
-                    <>
-                      <Icon size={20} className={`shrink-0 ${isActive ? 'text-forty-dark' : 'text-gray-400'}`} />
-                      <span className={`transition-all duration-300 overflow-hidden whitespace-nowrap text-left ${!isEffectiveOpen ? 'lg:w-0 lg:opacity-0' : 'w-auto flex-1 opacity-100 ml-3'}`}>
-                        {item.label}
-                      </span>
-                    </>
-                  )}
-                </NavLink>
-              )
-            })}
-        </nav>
+                      } ${!isEffectiveOpen ? 'lg:justify-center' : 'justify-start'}`
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <Icon size={20} className={`shrink-0 ${isActive ? 'text-forty-dark' : 'text-gray-400'}`} />
+                        <span className={`transition-all duration-300 overflow-hidden whitespace-nowrap text-left ${!isEffectiveOpen ? 'lg:w-0 lg:opacity-0' : 'w-auto flex-1 opacity-100 ml-3'}`}>
+                          {item.label}
+                        </span>
+                      </>
+                    )}
+                  </NavLink>
+                )
+              })}
+          </nav>
 
-        {/* User / Sign Out Profile */}
-        <div className="p-4 border-t border-white/5">
-          <div className={`flex items-center gap-3 px-4 py-3 mb-4 ${!isOpen ? 'lg:justify-center lg:px-0' : ''}`}>
-            <div className="w-10 h-10 rounded-full bg-forty-primary flex items-center justify-center shrink-0 text-sm font-bold text-white uppercase">
-              {user?.name
-                ? user.name.trim().split(' ').map(w => w[0]).join('').slice(0, 2)
-                : (user?.email?.[0] ?? '?').toUpperCase()}
+          {/* User / Sign Out Profile */}
+          <div className="p-4 border-t border-white/5">
+            <div className={`flex items-center gap-3 px-4 py-3 mb-4 ${!isOpen ? 'lg:justify-center lg:px-0' : ''}`}>
+              <div className="w-10 h-10 rounded-full bg-forty-primary flex items-center justify-center shrink-0 text-sm font-bold text-white uppercase">
+                {user?.name
+                  ? user.name.trim().split(' ').map(w => w[0]).join('').slice(0, 2)
+                  : (user?.email?.[0] ?? '?').toUpperCase()}
+              </div>
+              <div className={`transition-opacity duration-300 ${!isOpen ? 'lg:opacity-0 lg:hidden' : 'opacity-100'}`}>
+                <p className="text-sm font-bold text-white leading-none mb-1">
+                  {user?.name || user?.email || 'User'}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {user?.userType?.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase()) || ''}
+                </p>
+              </div>
             </div>
-            <div className={`transition-opacity duration-300 ${!isOpen ? 'lg:opacity-0 lg:hidden' : 'opacity-100'}`}>
-              <p className="text-sm font-bold text-white leading-none mb-1">
-                {user?.name || user?.email || 'User'}
-              </p>
-              <p className="text-xs text-gray-500">
-                {user?.userType?.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase()) || ''}
-              </p>
-            </div>
+            <button
+              onClick={() => {
+                logout()
+                onClose()
+              }}
+              className={`flex items-center px-4 py-3 rounded-lg text-sm font-medium text-red-400 hover:bg-red-400/10 transition-all duration-300 w-full ${!isEffectiveOpen ? 'lg:justify-center' : 'justify-start'}`}
+            >
+              <LogOut size={20} className="shrink-0" />
+              <span className={`transition-all duration-300 overflow-hidden whitespace-nowrap text-left ${!isEffectiveOpen ? 'lg:w-0 lg:opacity-0' : 'w-auto opacity-100 ml-3'}`}>
+                Sign Out
+              </span>
+            </button>
           </div>
-          <button
-            onClick={() => {
-              logout()
-              onClose()
-            }}
-            className={`flex items-center px-4 py-3 rounded-lg text-sm font-medium text-red-400 hover:bg-red-400/10 transition-all duration-300 w-full ${!isEffectiveOpen ? 'lg:justify-center' : 'justify-start'}`}
-          >
-            <LogOut size={20} className="shrink-0" />
-            <span className={`transition-all duration-300 overflow-hidden whitespace-nowrap text-left ${!isEffectiveOpen ? 'lg:w-0 lg:opacity-0' : 'w-auto opacity-100 ml-3'}`}>
-              Sign Out
-            </span>
-          </button>
         </div>
-      </div>
-    </aside>
+      </aside>
     </>
   )
 }

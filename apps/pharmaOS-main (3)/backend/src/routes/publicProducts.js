@@ -11,6 +11,8 @@ const router = Router()
 router.get('/', async (req, res) => {
   try {
     const { search, category, inStock } = req.query
+    console.log('Public products query:', { search, category, inStock })
+
     const where = {}
 
     if (search) {
@@ -22,6 +24,8 @@ router.get('/', async (req, res) => {
     if (inStock === 'true') {
       where.quantity = { gt: 0 }
     }
+
+    console.log('Where clause:', where)
 
     const products = await prisma.product.findMany({
       where,
@@ -40,8 +44,10 @@ router.get('/', async (req, res) => {
       }
     })
 
+    console.log(`Found ${products.length} products`)
     sendSuccess(res, 200, products)
   } catch (error) {
+    console.error('Public products error:', error)
     sendError(res, 500, error.message, 'SERVER_ERROR')
   }
 })
