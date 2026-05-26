@@ -63,16 +63,18 @@ export function HeroSection() {
             </Badge>
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight">
-              Your Digital
+              Your Health,
               <br />
-              Healthcare Partner
+              Delivered With Care
             </h1>
 
-            <p className="text-xl text-white/90 max-w-lg leading-relaxed">
-              Experience seamless healthcare with Pharmacie Nouni. Connect with
-              healthcare professionals, manage appointments, access
-              prescriptions, and take control of your health journey all in one
-              secure platform.
+            <p className="text-2xl text-white/99 max-w-lg leading-relaxed">
+              Kenya’s trusted online pharmacy for verified medicines,
+              prescription uploads, and seamless online ordering. Upload
+              prescriptions for approval, shop essential healthcare products,
+              and receive fast, reliable delivery to your doorstep. Secure
+              payments via M-Pesa or card make your healthcare experience simple
+              and stress-free.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 pt-2">
