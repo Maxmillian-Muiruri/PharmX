@@ -1,7 +1,8 @@
 import { useState, type FormEvent, type ChangeEvent } from 'react';
 import { Mail, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import { useToast } from '../../../context/ToastContext';
+import { useAuth } from '../../../context/AuthContext';
 
 interface LoginData {
   email: string;
@@ -9,12 +10,6 @@ interface LoginData {
   rememberMe: boolean;
 }
 
-interface UserData {
-  userId?: string;
-  email: string;
-  loggedIn?: boolean;
-  loginTime?: string;
-}
 
 export const Signin = () => {
   const [loginData, setLoginData] = useState<LoginData>({
@@ -25,32 +20,26 @@ export const Signin = () => {
 
   const navigate = useNavigate();
 
-  const handleLogin = (e: FormEvent<HTMLFormElement>) => {
+  const { login } = useAuth();
+  const { addToast } = useToast();
+
+  const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!loginData.email || !loginData.password) {
-      toast.error('Please fill in all fields');
+      addToast({ type: 'error', message: 'Please fill in all fields', duration: 3000 });
       return;
     }
 
-    toast.loading('Signing in...');
+    addToast({ type: 'info', message: 'Signing in...', duration: 2000 });
 
-    setTimeout(() => {
-      toast.dismiss();
-
-      const user: UserData = {
-        userId: 'user_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9),
-        email: loginData.email,
-        loggedIn: true,
-        loginTime: new Date().toISOString(),
-      };
-
-      localStorage.setItem('pharmacie_user', JSON.stringify(user));
-      window.dispatchEvent(new Event('auth-change'));
-
-      toast.success('Welcome back!');
+    try {
+      await login(loginData.email, loginData.password);
+      addToast({ type: 'success', message: 'Welcome back!', duration: 3000 });
       navigate('/');
-    }, 1000);
+    } catch (error: any) {
+      addToast({ type: 'error', message: error.response?.data?.error || 'Invalid email or password', duration: 3000 });
+    }
   };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -117,8 +106,8 @@ export const Signin = () => {
           <span className="text-sm text-[#0d4f5c] cursor-pointer hover:text-[#164e63] hover:underline">Forgot password?</span>
         </div>
 
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           className="w-full py-3.5 bg-[#0d4f5c] text-white font-semibold rounded-lg cursor-pointer transition-all hover:bg-[#164e63] active:scale-[0.98] shadow-lg hover:shadow-xl mb-6"
         >
           Sign in
@@ -126,8 +115,8 @@ export const Signin = () => {
 
         <div className="text-center text-gray-600">
           Don't have an account?{' '}
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="text-[#0d4f5c] font-semibold cursor-pointer bg-none border-none p-0 hover:text-[#164e63] hover:underline"
             onClick={() => navigate('/auth/signup')}
           >

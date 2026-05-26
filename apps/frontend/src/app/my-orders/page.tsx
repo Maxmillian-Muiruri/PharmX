@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getOrdersUpdateEventName, getStoredOrders } from '../../utils/prescriptions';
-import type { StoredOrder } from '../../types';
+import { orderApi } from '../../services/api';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type OrderStatus = 'Processing' | 'In Progress' | 'On the Way' | 'Delivered' | 'Cancelled';
+type OrderStatus = 'Pending' | 'Processing' | 'Out For Delivery' | 'Shipped' | 'Delivered' | 'Cancelled' | 'In Progress' | 'On the Way';
 
 interface OrderItem {
   name: string;
@@ -27,11 +26,14 @@ interface Order {
 // ─── Status Badge ─────────────────────────────────────────────────────────────
 
 const STATUS_CONFIG: Record<OrderStatus, { bg: string; color: string }> = {
-  Processing:   { bg: '#fef9c3', color: '#a16207' },
-  'In Progress':{ bg: '#dbeafe', color: '#1d4ed8' },
+  Pending: { bg: '#fef9c3', color: '#a16207' },
+  Processing: { bg: '#fef9c3', color: '#a16207' },
+  'Out For Delivery': { bg: '#f3e8ff', color: '#7e22ce' },
+  'In Progress': { bg: '#dbeafe', color: '#1d4ed8' },
+  Shipped: { bg: '#dbeafe', color: '#1d4ed8' },
   'On the Way': { bg: '#fce7f3', color: '#be185d' },
-  Delivered:    { bg: '#dcfce7', color: '#15803d' },
-  Cancelled:    { bg: '#fee2e2', color: '#dc2626' },
+  Delivered: { bg: '#dcfce7', color: '#15803d' },
+  Cancelled: { bg: '#fee2e2', color: '#dc2626' },
 };
 
 function StatusBadge({ status }: { status: OrderStatus }) {
@@ -136,16 +138,16 @@ function OrderCard({ order }: { order: Order }) {
 // ─── Stats ────────────────────────────────────────────────────────────────────
 
 function Stats({ orders }: { orders: Order[] }) {
-  const total      = orders.length;
-  const delivered  = orders.filter(o => o.status === 'Delivered').length;
-  const inProgress = orders.filter(o => o.status === 'In Progress' || o.status === 'Processing').length;
-  const onTheWay   = orders.filter(o => o.status === 'On the Way').length;
+  const total = orders.length;
+  const delivered = orders.filter(o => o.status === 'Delivered').length;
+  const inProgress = orders.filter(o => o.status === 'Processing' || o.status === 'In Progress' || o.status === 'Out For Delivery').length;
+  const onTheWay = orders.filter(o => o.status === 'On the Way').length;
 
   const items = [
-    { label: 'Total Orders', value: total,      color: '#0d4f5c' },
-    { label: 'Delivered',    value: delivered,  color: '#15803d' },
-    { label: 'In Progress',  value: inProgress, color: '#1d4ed8' },
-    { label: 'On the Way',   value: onTheWay,   color: '#be185d' },
+    { label: 'Total Orders', value: total, color: '#0d4f5c' },
+    { label: 'Delivered', value: delivered, color: '#15803d' },
+    { label: 'In Progress', value: inProgress, color: '#1d4ed8' },
+    { label: 'On the Way', value: onTheWay, color: '#be185d' },
   ];
 
   return (
@@ -175,38 +177,40 @@ const MyOrders = () => {
   const [orders, setOrders] = useState<Order[]>([]);
 
   useEffect(() => {
-    const loadOrders = () => {
-      const userJson = localStorage.getItem('pharmacie_user');
-      const userObj = userJson ? JSON.parse(userJson) : null;
-      const currentUserId = userObj?.userId || null;
-
-      const stored = getStoredOrders() as StoredOrder[];
-      const userOrders = stored.filter(order => 
-        order.userId && order.userId === currentUserId
-      );
-      
-      setOrders(
-        userOrders.map((order) => ({
-          id: order.id,
-          date: order.date,
-          items: order.items.map((item) => ({
-            name: item.name,
-            quantity: item.quantity,
-            price: item.price,
-          })),
-          total: order.total,
-          estimatedDelivery: order.estimatedDelivery,
-          status: order.status === 'Confirmed' ? 'Processing' : order.status,
-          isPrescriptionOrder: order.isPrescriptionOrder,
-          prescriptionId: order.prescriptionId,
-        })),
-      );
+    const loadOrders = async () => {
+      try {
+        const response = await orderApi.getAll();
+        const apiOrders = response.data.data;
+        const formattedOrders = apiOrders.map((order: any) => {
+          let statusStr = order.status
+            ? order.status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+            : 'Processing';
+          // Map backend 'completed' to frontend 'Delivered'
+          if (statusStr === 'Completed') statusStr = 'Delivered';
+          return {
+            id: order.id,
+            date: new Date(order.createdAt || Date.now()).toLocaleString('en-US', {
+              month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
+            }),
+            items: [
+              {
+                name: order.product?.name || `Product (${order.productId})`,
+                quantity: order.quantity,
+                price: Number(order.product?.unitPrice || order.totalAmount || 0) / Math.max(order.quantity, 1),
+              },
+            ],
+            total: Number(order.totalAmount || 0),
+            estimatedDelivery: order.deliveryMethod === 'express' ? 'Same day' : '2-4 hours',
+            status: statusStr,
+          };
+        });
+        setOrders(formattedOrders);
+      } catch (err) {
+        console.error("Failed to fetch orders:", err);
+      }
     };
 
     loadOrders();
-    const eventName = getOrdersUpdateEventName();
-    window.addEventListener(eventName, loadOrders);
-    return () => window.removeEventListener(eventName, loadOrders);
   }, []);
 
   const filtered = orders.filter(o => {
@@ -274,9 +278,10 @@ const MyOrders = () => {
             }}
           >
             <option value="All">All statuses</option>
+            <option value="Pending">Pending</option>
             <option value="Processing">Processing</option>
-            <option value="In Progress">In Progress</option>
-            <option value="On the Way">On the Way</option>
+            <option value="Out For Delivery">Out For Delivery</option>
+            <option value="Shipped">Shipped</option>
             <option value="Delivered">Delivered</option>
             <option value="Cancelled">Cancelled</option>
           </select>

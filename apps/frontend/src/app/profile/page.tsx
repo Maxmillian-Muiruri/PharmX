@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  User, Mail, Phone, Calendar, MapPin, LogOut, Edit2, 
-  Camera, Save, X, Building, Clock 
+import { useAuth } from '../../context/AuthContext';
+import { authApi } from '../../services/api';
+import {
+  User, Mail, Phone, Calendar, MapPin, LogOut, Edit2,
+  Camera, Save, X, Building, Clock
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -21,6 +23,7 @@ interface UserData {
 
 export default function ProfilePage() {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [userData, setUserData] = useState<UserData>({
     username: '',
@@ -35,40 +38,45 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('pharmacie_user');
-    if (storedUser) {
-      const user = JSON.parse(storedUser);
-      setUserData({
-        username: user.username || '',
-        fullName: user.fullName || '',
-        email: user.email || '',
-        phone: user.phone || '',
-        gender: user.gender || 'Male',
-        dateOfBirth: user.dateOfBirth || '',
-        address: user.address || '',
-        profilePicture: user.profilePicture || '',
-        createdAt: user.createdAt || '',
-      });
-    } else {
+    if (!user) {
       navigate('/auth');
+    } else {
+      // Map global user profile to form state
+      setUserData({
+        username: user.email?.split('@')[0] || '',
+        fullName: user.name || '',
+        email: user.email || '',
+        phone: (user as any).phone || '',
+        gender: (user as any).gender || 'Male',
+        dateOfBirth: (user as any).dateOfBirth || '',
+        address: (user as any).address || '',
+        profilePicture: (user as any).profilePicture || '',
+        createdAt: (user as any).createdAt || '',
+      });
     }
-  }, [navigate]);
+  }, [user, navigate]);
 
-  const handleSave = () => {
-    const storedUser = localStorage.getItem('pharmacie_user');
-    if (storedUser) {
-      const user = JSON.parse(storedUser);
-      const updatedUser = { ...user, ...userData };
-      localStorage.setItem('pharmacie_user', JSON.stringify(updatedUser));
-      window.dispatchEvent(new Event('auth-change'));
+  const handleSave = async () => {
+    try {
+      await authApi.updateProfile({
+        name: userData.fullName,
+        phone: userData.phone,
+        gender: userData.gender,
+        dateOfBirth: userData.dateOfBirth ? new Date(userData.dateOfBirth).toISOString() : null,
+        address: userData.address,
+        profilePicture: userData.profilePicture,
+      });
+      // Updating profile usually reflects on next auto-fetch or reload
+      // A full app might refresh the user context here
       toast.success('Profile updated successfully!');
       setIsEditing(false);
+    } catch (err) {
+      toast.error('Failed to update profile');
     }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('pharmacie_user');
-    window.dispatchEvent(new Event('auth-change'));
+    logout();
     toast.success('Logged out successfully');
     navigate('/');
   };
@@ -84,7 +92,7 @@ export default function ProfilePage() {
     }
   };
 
-  const memberSince = userData.createdAt 
+  const memberSince = userData.createdAt
     ? new Date(userData.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     : 'N/A';
 
@@ -113,7 +121,7 @@ export default function ProfilePage() {
                   </label>
                 )}
               </div>
-              
+
               {/* Name & Info */}
               <div className="flex-1">
                 <h1 className="text-2xl font-bold text-white">@{userData.username || 'User'}</h1>
@@ -148,7 +156,7 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
-          
+
           {/* Form Fields */}
           <div className="px-6 md:px-10 py-8">
             <div className="grid md:grid-cols-2 gap-6">

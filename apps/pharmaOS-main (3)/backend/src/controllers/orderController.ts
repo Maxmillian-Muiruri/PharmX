@@ -302,7 +302,7 @@ export const updateOrderStatus = async (req: AuthenticatedRequest, res: Response
 
     const idStr = Array.isArray(id) ? id[0] : id;
 
-    if (!status || !['Processing', 'In Progress', 'On the Way', 'Delivered', 'Cancelled', 'Confirmed'].includes(status)) {
+    if (!status || !['pending', 'processing', 'out_for_delivery', 'completed', 'cancelled'].includes(status)) {
       return res.status(400).json({
         success: false,
         message: 'Valid status is required'

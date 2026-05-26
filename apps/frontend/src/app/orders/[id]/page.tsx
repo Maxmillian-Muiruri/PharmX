@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getStoredOrderById } from '../../../utils/prescriptions';
-
+import { orderApi } from '../../../services/api';
 // Types
-type OrderStatus = 'Processing' | 'In Progress' | 'On the Way' | 'Delivered' | 'Cancelled' | 'Confirmed';
+type OrderStatus = 'Pending' | 'Processing' | 'Out For Delivery' | 'Shipped' | 'Delivered' | 'Cancelled' | 'In Progress' | 'On the Way' | 'Confirmed';
 
 interface OrderItem {
   name: string;
@@ -35,21 +34,24 @@ interface Order {
 
 // Status configuration
 const STATUS_CONFIG: Record<OrderStatus, { bg: string; color: string; icon: string }> = {
-  Processing:   { bg: '#fef9c3', color: '#a16207', icon: ' ' },
-  'In Progress':{ bg: '#dbeafe', color: '#1d4ed8', icon: ' ' },
+  Pending: { bg: '#fef9c3', color: '#a16207', icon: ' ' },
+  Processing: { bg: '#fef9c3', color: '#a16207', icon: ' ' },
+  'Out For Delivery': { bg: '#f3e8ff', color: '#7e22ce', icon: ' ' },
+  'In Progress': { bg: '#dbeafe', color: '#1d4ed8', icon: ' ' },
+  Shipped: { bg: '#dbeafe', color: '#1d4ed8', icon: ' ' },
   'On the Way': { bg: '#fce7f3', color: '#be185d', icon: ' ' },
-  Delivered:    { bg: '#dcfce7', color: '#15803d', icon: ' ' },
-  Cancelled:    { bg: '#fee2e2', color: '#dc2626', icon: ' ' },
-  Confirmed:    { bg: '#dcfce7', color: '#15803d', icon: ' ' },
+  Delivered: { bg: '#dcfce7', color: '#15803d', icon: ' ' },
+  Cancelled: { bg: '#fee2e2', color: '#dc2626', icon: ' ' },
+  Confirmed: { bg: '#dcfce7', color: '#15803d', icon: ' ' },
 };
 
 // Timeline steps based on order status
 const getTimelineSteps = (status: OrderStatus) => {
   const allSteps = [
     { key: 'ordered', label: 'Order Placed', completed: true, timestamp: '10:12 PM' },
-    { key: 'processing', label: 'Processing', completed: ['Processing', 'In Progress', 'On the Way', 'Delivered'].includes(status), timestamp: '10:15 PM' },
-    { key: 'progress', label: 'In Progress', completed: ['In Progress', 'On the Way', 'Delivered'].includes(status), timestamp: status === 'In Progress' ? '10:30 PM' : '10:45 PM' },
-    { key: 'ontheway', label: 'On the Way', completed: ['On the Way', 'Delivered'].includes(status), timestamp: status === 'On the Way' ? '11:00 AM' : '11:15 AM' },
+    { key: 'processing', label: 'Processing', completed: ['Processing', 'Out For Delivery', 'In Progress', 'On the Way', 'Delivered'].includes(status), timestamp: '10:15 PM' },
+    { key: 'progress', label: 'In Progress', completed: ['In Progress', 'On the Way', 'Delivered', 'Out For Delivery'].includes(status), timestamp: status === 'In Progress' ? '10:30 PM' : '10:45 PM' },
+    { key: 'ontheway', label: 'On the Way', completed: ['On the Way', 'Delivered', 'Out For Delivery'].includes(status), timestamp: status === 'On the Way' ? '11:00 AM' : '11:15 AM' },
     { key: 'delivered', label: 'Delivered', completed: status === 'Delivered', timestamp: status === 'Delivered' ? '12:30 PM' : 'Expected 12:30 PM' },
   ];
   return allSteps;
@@ -123,25 +125,72 @@ export default function TrackOrder() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Mock order data - in real app, this would be fetched from API
   useEffect(() => {
-const stored = getStoredOrderById(id);
-    setTimeout(() => {
-      if (stored) {
+    if (!id) return;
+    const fetchOrder = async () => {
+      try {
+        const response = await orderApi.getById(id);
+        const stored = response.data.data;
+        let statusStr = stored.status
+          ? stored.status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+          : 'Processing';
+        // Map backend 'completed' to frontend 'Delivered'
+        if (statusStr === 'Completed') statusStr = 'Delivered';
+
+        let shippingAddress = {
+          street: '',
+          city: '',
+          state: '',
+          zip: '',
+        };
+
+        if (stored.shippingAddress) {
+          if (typeof stored.shippingAddress === 'string') {
+            try {
+              shippingAddress = JSON.parse(stored.shippingAddress);
+            } catch {
+              shippingAddress.street = stored.shippingAddress;
+            }
+          } else {
+            shippingAddress = stored.shippingAddress;
+          }
+        }
+
         setOrder({
           id: stored.id,
-          date: stored.date,
-          items: stored.items,
-          total: stored.total,
-          estimatedDelivery: stored.estimatedDelivery,
-          status: stored.status === 'Confirmed' ? 'Processing' : stored.status,
-          shippingInfo: stored.shippingInfo,
+          date: new Date(stored.createdAt || Date.now()).toLocaleString('en-US', {
+            month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
+          }),
+          items: [
+            {
+              name: stored.product?.name || `Product (${stored.productId})`,
+              quantity: stored.quantity,
+              price: Number(stored.product?.unitPrice || stored.totalAmount || 0) / Math.max(stored.quantity, 1),
+            },
+          ],
+          total: Number(stored.totalAmount || 0),
+          estimatedDelivery: stored.deliveryMethod === 'express' ? 'Same day' : '2-4 hours',
+          status: statusStr,
+          shippingInfo: {
+            firstName: shippingAddress.firstName || '',
+            lastName: shippingAddress.lastName || '',
+            email: shippingAddress.email || '',
+            phone: shippingAddress.phone || '',
+            street: shippingAddress.street || '',
+            city: shippingAddress.city || '',
+            state: shippingAddress.state || '',
+            zip: shippingAddress.zip || shippingAddress.zipCode || '',
+          },
           paymentMethod: stored.paymentMethod ?? 'Not provided',
-          transactionId: stored.transactionId,
+          transactionId: stored.transactionId || '',
         });
+      } catch (err) {
+        console.error("Failed to load order", err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    }, 500);
+    };
+    fetchOrder();
   }, [id]);
 
   if (loading) {
@@ -232,9 +281,10 @@ const stored = getStoredOrderById(id);
             style={{
               height: '100%', background: '#0d4f5c',
               width: order.status === 'Processing' ? '20%' :
-                    order.status === 'In Progress' ? '40%' :
+                order.status === 'Out For Delivery' ? '60%' :
+                  order.status === 'In Progress' ? '40%' :
                     order.status === 'On the Way' ? '75%' :
-                    order.status === 'Delivered' ? '100%' : '0%',
+                      order.status === 'Delivered' ? '100%' : '0%',
               transition: 'width 0.3s ease',
             }}
           />
@@ -266,7 +316,7 @@ const stored = getStoredOrderById(id);
         <h3 style={{ fontSize: 16, fontWeight: 600, color: '#12251e', marginBottom: 16 }}>
           Order Details
         </h3>
-        
+
         {/* Items */}
         <div style={{ marginBottom: 16 }}>
           {order.items.map((item, index) => (

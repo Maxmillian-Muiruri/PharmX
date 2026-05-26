@@ -19,6 +19,8 @@ import Tax from './pages/Tax'
 import Settings from './pages/Settings'
 import StockList from './pages/StockList'
 import Products from './pages/Products'
+import Orders from './pages/Orders'
+import Prescriptions from './pages/Prescriptions'
 import Reports from './pages/Reports'
 import ListTemplate from './components/templates/ListTemplate'
 import FormTemplate, { FormField, FormInput, FormSelect } from './components/templates/FormTemplate'
@@ -56,6 +58,8 @@ function App() {
             <Route path="/purchases" element={<ProtectedRoute><Purchases /></ProtectedRoute>} />
 
             {/* Products */}
+            <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
+            <Route path="/prescriptions" element={<ProtectedRoute><Prescriptions /></ProtectedRoute>} />
             <Route path="/products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
             <Route path="/products/barcodes" element={<ProtectedRoute>
               <ListTemplate title="Print Barcodes" subtitle="Generate labels for current stock" storageKey="products_barcodes" columns={COLS.PRODUCTS} initialData={[]} />

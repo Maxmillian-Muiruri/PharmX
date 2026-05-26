@@ -1,89 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, NavLink } from "react-router-dom";
 import { CART_URL, PRODUCTLIST_URL } from "../../../utils";
 import { useCart } from '../../../context/CartContext';
 import { useToast } from '../../../context/ToastContext';
-
-// ── Mock product data (replace with real API call later) ──────────────────────
-const MOCK_PRODUCTS = [
-  {
-    id: "1",
-    name: "Paracetamol 500mg",
-    brand: "PharmX Generic",
-    category: "Pain Relief",
-    price:499,
-    originalPrice: 649,
-    availability: "In Stock",
-    availabilityCount: 142,
-    image: null,
-    description:
-      "Paracetamol 500mg tablets are used for the relief of mild to moderate pain including headache, migraine, nerve pain, toothache, sore throat, period pain, and general aches. Also effective for reducing fever.",
-    usage:
-      "Adults and children 12 years and over: Take 1–2 tablets every 4–6 hours as needed. Do not take more than 8 tablets in 24 hours. Not suitable for children under 12.",
-    warnings: [
-      "Do not exceed the recommended dose.",
-      "Keep out of reach of children.",
-      "Avoid alcohol while taking this medication.",
-      "Consult a doctor if symptoms persist beyond 3 days.",
-    ],
-    tags: ["OTC", "Tablet", "Analgesic"],
-    relatedIds: ["2", "3"],
-  },
-  {
-    id: "2",
-    name: "Vitamin C 1000mg",
-    brand: "NutriShield",
-    category: "Vitamins & Supplements",
-    price: 899,
-    originalPrice: null,
-    availability: "In Stock",
-    availabilityCount: 88,
-    image: null,
-    description:
-      "High-strength Vitamin C supplement to support immune function, collagen synthesis, and antioxidant protection. Effervescent tablet format for fast absorption.",
-    usage:
-      "Dissolve one tablet in a glass of water once daily, preferably with a meal.",
-    warnings: [
-      "Do not exceed the stated dose.",
-      "Not a substitute for a balanced diet.",
-      "Consult a doctor if pregnant or breastfeeding.",
-    ],
-    tags: ["Supplement", "Effervescent", "Immune Support"],
-    relatedIds: ["1", "3"],
-  },
-  {
-    id: "3",
-    name: "Ibuprofen 400mg",
-    brand: "PharmX Generic",
-    category: "Pain Relief",
-    price: 549,
-    originalPrice: 749,
-    availability: "Low Stock",
-    availabilityCount: 12,
-    image: null,
-    description:
-      "Ibuprofen 400mg is a non-steroidal anti-inflammatory drug (NSAID) used to relieve pain, reduce inflammation, and lower fever.",
-    usage:
-      "Adults: Take 1 tablet 3 times a day. Take with or after food. Do not use for more than 10 days without medical advice.",
-    warnings: [
-      "Not suitable for people with stomach ulcers.",
-      "Avoid if allergic to aspirin or other NSAIDs.",
-      "Consult a doctor before use if pregnant.",
-      "Keep out of reach of children.",
-    ],
-    tags: ["OTC", "Tablet", "Anti-inflammatory"],
-    relatedIds: ["1", "2"],
-  },
-];
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-function getProduct(id: string) {
-  return MOCK_PRODUCTS.find((p) => p.id === id) ?? null;
-}
-
-function getRelated(ids: string[]) {
-  return MOCK_PRODUCTS.filter((p) => ids.includes(p.id));
-}
+import { productApi } from '../../../services/api';
+import { Loader2 } from 'lucide-react';
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 function ProductImagePlaceholder({ name }: { name: string }) {
@@ -116,18 +37,16 @@ function AvailabilityBadge({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${
-        isOut
-          ? "bg-red-50 text-red-600"
-          : isLow
+      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${isOut
+        ? "bg-red-50 text-red-600"
+        : isLow
           ? "bg-amber-50 text-amber-600"
           : "bg-teal-50 text-teal-700"
-      }`}
+        }`}
     >
       <span
-        className={`h-1.5 w-1.5 rounded-full ${
-          isOut ? "bg-red-500" : isLow ? "bg-amber-500" : "bg-teal-500"
-        }`}
+        className={`h-1.5 w-1.5 rounded-full ${isOut ? "bg-red-500" : isLow ? "bg-amber-500" : "bg-teal-500"
+          }`}
       />
       {status}
       {!isOut && (
@@ -160,12 +79,53 @@ export const ProductDetail = () => {
   const { addItem } = useCart();
   const { addToast } = useToast();
 
-  const product = getProduct(id ?? "");
+  const [product, setProduct] = useState<any>(null);
+  const [related, setRelated] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<"description" | "usage" | "warnings">("description");
   const [addedToCart, setAddedToCart] = useState(false);
 
+  useEffect(() => {
+    if (!id) return;
+    setIsLoading(true);
+    productApi.getById(id)
+      .then(res => {
+        const p = res.data.data;
+        const mappedProduct = {
+          id: p.id,
+          name: p.name,
+          brand: 'PharmX Generic',
+          category: p.category || 'General',
+          price: Number(p.price),
+          originalPrice: p.compareAtPrice ? Number(p.compareAtPrice) : null,
+          availability: p.stock > 0 ? "In Stock" : "Out of Stock",
+          availabilityCount: p.stock,
+          image: p.image || null,
+          description: p.description || 'No description available.',
+          usage: "Take as directed by your physician or pharmacist.",
+          warnings: ["Keep out of reach of children.", "Read label before use."],
+          tags: ["OTC"],
+          relatedIds: []
+        };
+        setProduct(mappedProduct);
+        // We could fetch related here, mock for now
+        setRelated([]);
+      })
+      .catch(console.error)
+      .finally(() => setIsLoading(false));
+  }, [id]);
+
   // ── Not found ──
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 py-24 text-center">
+        <Loader2 className="h-12 w-12 text-teal-600 animate-spin" />
+      </div>
+    );
+  }
+
   if (!product) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-24 text-center">
@@ -186,18 +146,17 @@ export const ProductDetail = () => {
     );
   }
 
-  const related = getRelated(product.relatedIds);
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : null;
 
   const handleAddToCart = () => {
     console.log('handleAddToCart called');
-    
+
     // Determine stock status based on availability
-    const stockStatus = product.availability === "Out of Stock" ? "out_of_stock" : 
-                        product.availability === "Low Stock" ? "low_stock" : "in_stock";
-    
+    const stockStatus = product.availability === "Out of Stock" ? "out_of_stock" :
+      product.availability === "Low Stock" ? "low_stock" : "in_stock";
+
     // Determine image type based on tags
     let imageType: "capsule" | "tablet" | "syrup" | "supplement" = "tablet";
     if (product.tags.includes("Tablet")) imageType = "tablet";
@@ -270,7 +229,7 @@ export const ProductDetail = () => {
 
           {/* Tags */}
           <div className="flex flex-wrap gap-2">
-            {product.tags.map((tag) => (
+            {product.tags.map((tag: string) => (
               <span
                 key={tag}
                 className="rounded-md border border-teal-100 bg-teal-50 px-2.5 py-1 text-xs text-teal-700"
@@ -350,13 +309,12 @@ export const ProductDetail = () => {
             <button
               onClick={handleAddToCart}
               disabled={product.availability === "Out of Stock"}
-              className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition-all ${
-                addedToCart
-                  ? "bg-teal-500 text-white"
-                  : product.availability === "Out of Stock"
+              className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition-all ${addedToCart
+                ? "bg-teal-500 text-white"
+                : product.availability === "Out of Stock"
                   ? "cursor-not-allowed bg-slate-100 text-slate-400"
                   : "bg-teal-700 text-white hover:bg-teal-800"
-              }`}
+                }`}
             >
               {addedToCart ? (
                 <>
@@ -410,11 +368,10 @@ export const ProductDetail = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-6 py-4 text-sm font-medium transition-colors border-b-2 -mb-px ${
-                activeTab === tab.id
-                  ? "border-teal-700 text-teal-700"
-                  : "border-transparent text-slate-500 hover:text-teal-600"
-              }`}
+              className={`px-6 py-4 text-sm font-medium transition-colors border-b-2 -mb-px ${activeTab === tab.id
+                ? "border-teal-700 text-teal-700"
+                : "border-transparent text-slate-500 hover:text-teal-600"
+                }`}
             >
               {tab.label}
             </button>
@@ -432,7 +389,7 @@ export const ProductDetail = () => {
 
           <TabPanel active={activeTab === "warnings"} id="tab-warnings">
             <ul className="space-y-2">
-              {product.warnings.map((w, i) => (
+              {product.warnings.map((w: string, i: number) => (
                 <li key={i} className="flex items-start gap-2.5 text-sm text-slate-600">
                   <svg className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -458,7 +415,7 @@ export const ProductDetail = () => {
               >
                 <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-teal-50">
                   <span className="text-sm font-semibold text-teal-600">
-                    {p.name.split(" ").slice(0, 2).map((w) => w[0]).join("").toUpperCase()}
+                    {p.name.split(" ").slice(0, 2).map((w: string) => w[0]).join("").toUpperCase()}
                   </span>
                 </div>
                 <div className="min-w-0 flex-1">

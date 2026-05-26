@@ -42,7 +42,7 @@ interface OrderData {
 export function TrackOrder() {
   const params = useParams();
   const orderIdFromUrl = params.id;
-  
+
   const [orderNumber, setOrderNumber] = useState(orderIdFromUrl || '');
   const [orderData, setOrderData] = useState<OrderData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -55,46 +55,11 @@ export function TrackOrder() {
     }
   }, [orderIdFromUrl]);
 
-  const fetchOrderData = (orderNum: string) => {
+  const fetchOrderData = async (orderNum: string) => {
     setIsLoading(true);
-    setTimeout(() => {
-      // Try to find in localStorage
-      const storedOrders = JSON.parse(localStorage.getItem('pharmx_orders') || '[]');
-      const foundOrder = storedOrders.find((o: any) => 
-        o.id === orderNum || 
-        o.orderNumber === orderNum ||
-        o.id?.includes(orderNum)
-      );
 
-      if (foundOrder) {
-        setOrderData({
-          orderNumber: foundOrder.orderNumber || foundOrder.id,
-          status: foundOrder.status || 'processing',
-          orderDate: foundOrder.date || new Date().toLocaleDateString(),
-          estimatedDelivery: foundOrder.estimatedDelivery || '2-4 hours',
-          currentLocation: 'Pharmacy Warehouse',
-          items: foundOrder.items || [],
-          customer: {
-            name: `${foundOrder.shippingInfo?.firstName || ''} ${foundOrder.shippingInfo?.lastName || ''}`.trim() || 'Customer',
-            phone: foundOrder.shippingInfo?.phone || '',
-            email: foundOrder.shippingInfo?.email || '',
-          },
-          shippingAddress: {
-            street: foundOrder.shippingInfo?.street || '',
-            city: foundOrder.shippingInfo?.city || '',
-            state: foundOrder.shippingInfo?.state || '',
-            zipCode: foundOrder.shippingInfo?.zip || '',
-          },
-          timeline: [
-            { status: 'placed', title: 'Order Placed', description: 'Your order has been received', timestamp: foundOrder.date || '', completed: true },
-            { status: 'confirmed', title: 'Payment Confirmed', description: 'Payment successfully processed', timestamp: foundOrder.date || '', completed: true },
-            { status: 'processing', title: 'Processing Order', description: 'Pharmacist is preparing your medicines', timestamp: '', completed: foundOrder.status === 'Processing' || foundOrder.status === 'shipped' || foundOrder.status === 'delivered', active: foundOrder.status === 'Processing' },
-            { status: 'shipped', title: 'Out for Delivery', description: 'Your order is on the way', timestamp: '', completed: foundOrder.status === 'shipped' || foundOrder.status === 'delivered' },
-            { status: 'delivered', title: 'Delivered', description: 'Order successfully delivered', timestamp: '', completed: foundOrder.status === 'delivered' },
-          ],
-          total: foundOrder.total || 0,
-        });
-      } else if (orderNum.toUpperCase() === 'ORD-DEMO123') {
+    try {
+      if (orderNum.toUpperCase() === 'ORD-DEMO123') {
         // Demo order
         setOrderData({
           orderNumber: 'ORD-DEMO123',
@@ -117,11 +82,65 @@ export function TrackOrder() {
           ],
           total: 42.97
         });
-      } else {
-        setOrderData(null);
+        setIsLoading(false);
+        return;
       }
+
+      // Read from real backend
+      const { orderApi } = await import('../services/api');
+      const response = await orderApi.getByTrackingNumber(orderNum);
+      const backendOrder = response.data.data;
+
+      // Ensure shipping Address is parsed properly since backend stores it as string/JSON
+      let parsedAddress = { street: '', city: '', state: '', zipCode: '' }
+      if (backendOrder.shippingAddress) {
+        if (typeof backendOrder.shippingAddress === 'string') {
+          // Attempt JSON parse or use as raw street string
+          try {
+            parsedAddress = JSON.parse(backendOrder.shippingAddress)
+          } catch (e) {
+            parsedAddress.street = backendOrder.shippingAddress
+          }
+        } else {
+          parsedAddress = backendOrder.shippingAddress
+        }
+      }
+
+      const orderStatus = backendOrder.status.toLowerCase();
+
+      setOrderData({
+        orderNumber: backendOrder.orderNumber,
+        status: orderStatus,
+        orderDate: new Date(backendOrder.createdAt).toLocaleString(),
+        estimatedDelivery: backendOrder.estimatedDelivery || '2-4 hours',
+         currentLocation: orderStatus === 'delivered' || orderStatus === 'completed' ? 'Delivered' : orderStatus === 'out_for_delivery' ? 'Out for Delivery' : orderStatus === 'processing' ? 'Pharmacy Warehouse' : 'Processing Center',
+        items: [
+          {
+            name: backendOrder.product?.name || 'Product',
+            quantity: backendOrder.quantity,
+            price: Number(backendOrder.totalAmount) / backendOrder.quantity
+          }
+        ],
+        customer: {
+          name: backendOrder.customerName || 'Customer',
+          phone: backendOrder.customerPhone || '',
+          email: backendOrder.customerEmail || '',
+        },
+        shippingAddress: parsedAddress,
+         timeline: [
+           { status: 'placed', title: 'Order Placed', description: 'Your order has been received', timestamp: new Date(backendOrder.createdAt).toLocaleString(), completed: true },
+           { status: 'processing', title: 'Processing Order', description: 'Pharmacist is preparing your medicines', timestamp: '', completed: ['processing', 'out_for_delivery', 'completed', 'delivered', 'shipped'].includes(orderStatus), active: orderStatus === 'processing' },
+           { status: 'shipped', title: 'Out for Delivery', description: 'Your order is on the way', timestamp: '', completed: ['out_for_delivery', 'completed', 'delivered', 'shipped'].includes(orderStatus), active: orderStatus === 'out_for_delivery' || orderStatus === 'shipped' },
+           { status: 'delivered', title: 'Delivered', description: 'Order successfully delivered', timestamp: '', completed: ['completed', 'delivered'].includes(orderStatus), active: ['completed', 'delivered'].includes(orderStatus) },
+         ],
+        total: Number(backendOrder.totalAmount),
+      });
+    } catch (error) {
+      console.error("Order tracking error:", error);
+      setOrderData(null);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const handleSearch = (e: FormEvent) => {
@@ -131,24 +150,26 @@ export function TrackOrder() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    const badges: Record<string, { text: string; className: string }> = {
-      placed: { text: 'Order Placed', className: 'bg-gray-100 text-gray-800' },
-      confirmed: { text: 'Payment Confirmed', className: 'bg-cyan-100 text-cyan-800' },
-      processing: { text: 'Processing', className: 'bg-yellow-100 text-yellow-800' },
-      shipped: { text: 'Out for Delivery', className: 'bg-blue-100 text-blue-800' },
-      delivered: { text: 'Delivered', className: 'bg-green-100 text-green-800' }
-    };
-    const badge = badges[status] || badges.placed;
-    return <span className={`px-3 py-1 rounded-full text-xs font-medium ${badge.className}`}>{badge.text}</span>;
-  };
+   const getStatusBadge = (status: string) => {
+     const badges: Record<string, { text: string; className: string }> = {
+       placed: { text: 'Order Placed', className: 'bg-gray-100 text-gray-800' },
+       confirmed: { text: 'Payment Confirmed', className: 'bg-cyan-100 text-cyan-800' },
+       processing: { text: 'Processing', className: 'bg-yellow-100 text-yellow-800' },
+       shipped: { text: 'Out for Delivery', className: 'bg-blue-100 text-blue-800' },
+       'out_for_delivery': { text: 'Out for Delivery', className: 'bg-purple-100 text-purple-800' },
+       delivered: { text: 'Delivered', className: 'bg-green-100 text-green-800' },
+       completed: { text: 'Delivered', className: 'bg-green-100 text-green-800' }
+     };
+     const badge = badges[status] || badges.placed;
+     return <span className={`px-3 py-1 rounded-full text-xs font-medium ${badge.className}`}>{badge.text}</span>;
+   };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-5xl mx-auto px-4">
         {/* Header */}
         <div className="mb-8">
-          <button 
+          <button
             onClick={() => window.history.back()}
             className="flex items-center text-gray-600 hover:text-teal-600 mb-4 transition-colors"
           >
@@ -191,7 +212,7 @@ export function TrackOrder() {
                 )}
               </button>
             </div>
-            
+
             {!orderData && !isLoading && (
               <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <p className="text-sm text-blue-800">
@@ -258,14 +279,13 @@ export function TrackOrder() {
                     <div key={index} className="flex gap-4 pb-8 last:pb-0">
                       {/* Timeline Line */}
                       <div className="relative flex flex-col items-center">
-                        <div 
-                          className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                            step.completed 
-                              ? step.active 
-                                ? 'bg-teal-600 ring-4 ring-teal-100' 
-                                : 'bg-teal-600'
-                              : 'bg-gray-200'
-                          }`}
+                        <div
+                          className={`w-10 h-10 rounded-full flex items-center justify-center ${step.completed
+                            ? step.active
+                              ? 'bg-teal-600 ring-4 ring-teal-100'
+                              : 'bg-teal-600'
+                            : 'bg-gray-200'
+                            }`}
                         >
                           {step.completed ? (
                             <CheckCircle className="h-5 w-5 text-white" />
@@ -274,10 +294,9 @@ export function TrackOrder() {
                           )}
                         </div>
                         {index < orderData.timeline.length - 1 && (
-                          <div 
-                            className={`w-0.5 h-16 ${
-                              step.completed ? 'bg-teal-600' : 'bg-gray-200'
-                            }`}
+                          <div
+                            className={`w-0.5 h-16 ${step.completed ? 'bg-teal-600' : 'bg-gray-200'
+                              }`}
                           />
                         )}
                       </div>
@@ -355,7 +374,11 @@ export function TrackOrder() {
                   <div className="flex items-start gap-2">
                     <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
                     <p className="text-sm text-gray-600">
-                      {orderData.shippingAddress.street}, {orderData.shippingAddress.city}, {orderData.shippingAddress.state} {orderData.shippingAddress.zipCode}
+                      {orderData.shippingAddress.city ? (
+                        <>{orderData.shippingAddress.street}, {orderData.shippingAddress.city}, {orderData.shippingAddress.state} {orderData.shippingAddress.zipCode}</>
+                      ) : (
+                        orderData.shippingAddress.street
+                      )}
                     </p>
                   </div>
                 </div>

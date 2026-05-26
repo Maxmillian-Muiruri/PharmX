@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { CART_URL, ROOT_URL_PREFIX, navLinks } from "../utils";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
 import { ReusableSearchBar } from "./dev/core";
 import { User, LogOut } from "lucide-react";
 
@@ -14,42 +15,27 @@ export function Header({ cartItemCount, onCartClick }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [atBottom, setAtBottom] = useState(false);
   const [passedHowItWorks, setPassedHowItWorks] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userData, setUserData] = useState<{ username?: string; email?: string; profilePicture?: string } | null>(null);
   const { getItemCount } = useCart();
+  const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
 
   // Use context value if props not provided
   const actualCartItemCount = cartItemCount ?? getItemCount();
 
-  // Check auth status
-  useEffect(() => {
-    const checkLoginStatus = () => {
-      const user = localStorage.getItem('pharmacie_user');
-      if (user) {
-        setIsLoggedIn(true);
-        setUserData(JSON.parse(user));
-      } else {
-        setIsLoggedIn(false);
-        setUserData(null);
+  // Read profile picture from localStorage (it's stored separately)
+  const profilePicture = (() => {
+    try {
+      const stored = localStorage.getItem('pharmacie_user');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return parsed.profilePicture || null;
       }
-    };
-
-    checkLoginStatus();
-
-    // Listen for auth changes
-    const handleAuthChange = () => checkLoginStatus();
-    window.addEventListener('auth-change', handleAuthChange);
-    window.addEventListener('storage', checkLoginStatus);
-
-    return () => {
-      window.removeEventListener('auth-change', handleAuthChange);
-      window.removeEventListener('storage', checkLoginStatus);
-    };
-  }, []);
+    } catch { /* ignore */ }
+    return null;
+  })();
 
   const handleAccountClick = () => {
-    if (isLoggedIn) {
+    if (isAuthenticated) {
       navigate('/profile');
     } else {
       navigate('/auth');
@@ -57,8 +43,7 @@ export function Header({ cartItemCount, onCartClick }: HeaderProps) {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('pharmacie_user');
-    window.dispatchEvent(new Event('auth-change'));
+    logout();
     navigate('/');
   };
 
@@ -81,13 +66,12 @@ export function Header({ cartItemCount, onCartClick }: HeaderProps) {
 
   return (
     <header
-      className={`sticky top-0 left-0 z-50 w-full transition-all duration-300 ease-in-out ${
-        atBottom
-          ? "bg-linear-to-r from-[#1a7a8c] to-[#2d9caf] shadow-lg py-2"
-          : passedHowItWorks
-            ? "bg-linear-to-r from-[#0f3a4a] to-[#1a5a6e] shadow-lg py-2"
-            : "bg-white py-4 border-b border-slate-200/50 shadow-sm"
-      }`}
+      className={`sticky top-0 left-0 z-50 w-full transition-all duration-300 ease-in-out ${atBottom
+        ? "bg-linear-to-r from-[#1a7a8c] to-[#2d9caf] shadow-lg py-2"
+        : passedHowItWorks
+          ? "bg-linear-to-r from-[#0f3a4a] to-[#1a5a6e] shadow-lg py-2"
+          : "bg-white py-4 border-b border-slate-200/50 shadow-sm"
+        }`}
     >
       <div className="w-full px-4 md:px-8">
         <div className="max-w-screen-2xl mx-auto py-4">
@@ -140,21 +124,20 @@ export function Header({ cartItemCount, onCartClick }: HeaderProps) {
             {/* Actions */}
             <div className="flex items-center gap-4 shrink-0">
               {/* Account - conditional based on login status */}
-              {isLoggedIn && userData ? (
+              {isAuthenticated && user ? (
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleAccountClick}
-                    className={`flex items-center gap-2 transition-colors ${
-                      atBottom || passedHowItWorks
-                        ? "text-white/70 hover:text-white"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
+                    className={`flex items-center gap-2 transition-colors ${atBottom || passedHowItWorks
+                      ? "text-white/70 hover:text-white"
+                      : "text-slate-600 hover:text-slate-900"
+                      }`}
                   >
                     <div className="w-8 h-8 rounded-full bg-teal-600 flex items-center justify-center overflow-hidden">
-                      {userData.profilePicture ? (
+                      {profilePicture ? (
                         <img
-                          src={userData.profilePicture}
-                          alt={userData.username}
+                          src={profilePicture}
+                          alt={user.name}
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -162,16 +145,15 @@ export function Header({ cartItemCount, onCartClick }: HeaderProps) {
                       )}
                     </div>
                     <span className="hidden md:inline text-sm font-medium">
-                      {userData.username || 'User'}
+                      {user.name || 'User'}
                     </span>
                   </button>
                   <button
                     onClick={handleLogout}
-                    className={`p-2 rounded-full transition-colors ${
-                      atBottom || passedHowItWorks
-                        ? "text-white/70 hover:text-white hover:bg-white/10"
-                        : "text-slate-600 hover:text-slate-900 hover:bg-gray-100"
-                    }`}
+                    className={`p-2 rounded-full transition-colors ${atBottom || passedHowItWorks
+                      ? "text-white/70 hover:text-white hover:bg-white/10"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-gray-100"
+                      }`}
                     title="Logout"
                   >
                     <LogOut className="w-4 h-4" />
@@ -180,11 +162,10 @@ export function Header({ cartItemCount, onCartClick }: HeaderProps) {
               ) : (
                 <button
                   onClick={handleAccountClick}
-                  className={`flex items-center gap-2 text-sm transition-colors ${
-                    atBottom || passedHowItWorks
-                      ? "text-white/70 hover:text-white"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
+                  className={`flex items-center gap-2 text-sm transition-colors ${atBottom || passedHowItWorks
+                    ? "text-white/70 hover:text-white"
+                    : "text-slate-600 hover:text-slate-900"
+                    }`}
                 >
                   <User className="w-4 h-4" />
                   <span className="hidden md:inline">Login / Register</span>
@@ -194,11 +175,10 @@ export function Header({ cartItemCount, onCartClick }: HeaderProps) {
               {onCartClick ? (
                 <button
                   onClick={onCartClick}
-                  className={`relative transition-colors ${
-                    atBottom || passedHowItWorks
-                      ? "text-white/70 hover:text-white"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
+                  className={`relative transition-colors ${atBottom || passedHowItWorks
+                    ? "text-white/70 hover:text-white"
+                    : "text-slate-600 hover:text-slate-900"
+                    }`}
                 >
                   <svg
                     className="h-5 w-5"
@@ -222,11 +202,10 @@ export function Header({ cartItemCount, onCartClick }: HeaderProps) {
               ) : (
                 <NavLink
                   to={CART_URL}
-                  className={`relative transition-colors ${
-                    atBottom || passedHowItWorks
-                      ? "text-white/70 hover:text-white"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
+                  className={`relative transition-colors ${atBottom || passedHowItWorks
+                    ? "text-white/70 hover:text-white"
+                    : "text-slate-600 hover:text-slate-900"
+                    }`}
                 >
                   <svg
                     className="h-5 w-5"
@@ -250,11 +229,10 @@ export function Header({ cartItemCount, onCartClick }: HeaderProps) {
               )}
 
               <button
-                className={`lg:hidden transition-colors ${
-                  atBottom || passedHowItWorks
-                    ? "text-white/70 hover:text-white"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
+                className={`lg:hidden transition-colors ${atBottom || passedHowItWorks
+                  ? "text-white/70 hover:text-white"
+                  : "text-slate-600 hover:text-slate-900"
+                  }`}
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
               >
                 <svg
@@ -288,14 +266,13 @@ export function Header({ cartItemCount, onCartClick }: HeaderProps) {
                     <NavLink
                       onClick={() => setIsMenuOpen(false)}
                       className={({ isActive }) =>
-                        `block w-full text-left py-2 text-sm transition-colors ${
-                          atBottom || passedHowItWorks
-                            ? isActive
-                              ? "text-white font-medium"
-                              : "text-white/70 hover:text-white"
-                            : isActive
-                              ? "text-slate-900 font-medium"
-                              : "text-slate-600 hover:text-slate-900"
+                        `block w-full text-left py-2 text-sm transition-colors ${atBottom || passedHowItWorks
+                          ? isActive
+                            ? "text-white font-medium"
+                            : "text-white/70 hover:text-white"
+                          : isActive
+                            ? "text-slate-900 font-medium"
+                            : "text-slate-600 hover:text-slate-900"
                         }`
                       }
                       to={link.to}

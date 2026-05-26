@@ -2,12 +2,8 @@ import { useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../../context/ToastContext";
-import {
-  addPrescription,
-  createPrescriptionId,
-  readFilesAsDataUrls,
-  simulatePrescriptionReview,
-} from "../../utils/prescriptions";
+import { readFilesAsDataUrls } from "../../utils/prescriptions";
+import { prescriptionApi } from "../../services/api";
 import { PRESCRIPTIONS_URL } from "../../utils";
 import type { PrescriptionRequest } from "../../types";
 
@@ -41,9 +37,9 @@ export const UploadPrescription = () => {
 
   const setField =
     (key: keyof PrescriptionForm) =>
-    (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setForm((prev) => ({ ...prev, [key]: event.target.value }));
-    };
+      (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setForm((prev) => ({ ...prev, [key]: event.target.value }));
+      };
 
   const handleFiles = (event: ChangeEvent<HTMLInputElement>) => {
     const nextFiles = Array.from(event.target.files ?? []);
@@ -76,24 +72,19 @@ export const UploadPrescription = () => {
     try {
       setSubmitting(true);
       const storedFiles = await readFilesAsDataUrls(files);
-      const userJson = localStorage.getItem('pharmacie_user');
-      const userObj = userJson ? JSON.parse(userJson) : null;
-      const userId = userObj?.userId || null;
 
-      const prescription: PrescriptionRequest = {
-        id: createPrescriptionId(),
-        userId,
-        ...form,
+      const payload = {
+        patientName: form.patientName,
+        phoneNumber: form.phoneNumber,
+        email: form.email,
+        doctorName: form.doctorName,
+        hospitalName: form.hospitalName,
+        address: form.address,
+        notes: form.notes,
         files: storedFiles,
-        createdAt: new Date().toISOString(),
-        reviewedAt: null,
-        status: "under_review",
-        estimatedPrice: null,
-        reviewNotes: "",
       };
 
-      addPrescription(prescription);
-      simulatePrescriptionReview(prescription.id);
+      await prescriptionApi.upload(payload);
 
       addToast({
         type: "success",

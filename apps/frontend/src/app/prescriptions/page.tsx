@@ -3,46 +3,43 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "../../context/ToastContext";
 import {
   getCheckoutPrescriptionId,
-  getPrescriptionById,
   getPrescriptionStatusMeta,
-  getPrescriptionUpdateEventName,
-  getStoredPrescriptions,
   setCheckoutPrescriptionId,
 } from "../../utils/prescriptions";
 import { CHECKOUT_URL, PRESCRIPTION_URL } from "../../utils";
 import type { PrescriptionFile, PrescriptionRequest } from "../../types";
+import { prescriptionApi } from "../../services/api";
 
 export const MyPrescriptions = () => {
   const navigate = useNavigate();
   const { addToast } = useToast();
   const [items, setItems] = useState<PrescriptionRequest[]>([]);
   const [preview, setPreview] = useState<PrescriptionFile | null>(null);
-  const [activeCheckoutId, setActiveCheckoutId] = useState<string | null>(getCheckoutPrescriptionId());
+  const [activeCheckoutId, setActiveCheckoutId] = useState<string | null>(
+    getCheckoutPrescriptionId(),
+  );
 
   useEffect(() => {
-    const load = () => {
-      const userJson = localStorage.getItem('pharmacie_user');
-      const userObj = userJson ? JSON.parse(userJson) : null;
-      const currentUserId = userObj?.userId || null;
+    const load = async () => {
+      try {
+        const response = await prescriptionApi.getAll();
+        setItems(response.data.data);
 
-      const allPrescriptions = getStoredPrescriptions();
-      const userPrescriptions = allPrescriptions.filter(p => 
-        p.userId && p.userId === currentUserId
-      );
-      
-      setItems(userPrescriptions);
-      const currentCheckoutId = getCheckoutPrescriptionId();
-      setActiveCheckoutId(
-        currentCheckoutId && getPrescriptionById(currentCheckoutId)?.status === "available"
-          ? currentCheckoutId
-          : null,
-      );
+        const currentCheckoutId = getCheckoutPrescriptionId();
+        const checkoutItem = response.data.data.find(
+          (p: any) => p.id === currentCheckoutId,
+        );
+        setActiveCheckoutId(
+          checkoutItem && checkoutItem.status === "available"
+            ? currentCheckoutId
+            : null,
+        );
+      } catch (err) {
+        console.error("Failed to load prescriptions", err);
+      }
     };
 
     load();
-    const eventName = getPrescriptionUpdateEventName();
-    window.addEventListener(eventName, load);
-    return () => window.removeEventListener(eventName, load);
   }, []);
 
   const handleCheckout = (id: string) => {
@@ -88,8 +85,8 @@ export const MyPrescriptions = () => {
             My Prescriptions
           </h1>
           <p style={{ fontSize: 14, color: "#64748b", maxWidth: 650 }}>
-            Track each uploaded prescription, view pharmacist notes, and continue to payment once
-            the medicines are confirmed as available.
+            Track each uploaded prescription, view pharmacist notes, and
+            continue to payment once the medicines are confirmed as available.
           </p>
         </div>
 
@@ -134,7 +131,14 @@ export const MyPrescriptions = () => {
               margin: "0 auto 14px",
             }}
           >
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0d4f5c" strokeWidth="2">
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#0d4f5c"
+              strokeWidth="2"
+            >
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
               <path d="M14 2v6h6" />
             </svg>
@@ -151,7 +155,8 @@ export const MyPrescriptions = () => {
             No prescriptions yet
           </h2>
           <p style={{ fontSize: 14, color: "#64748b", marginBottom: 18 }}>
-            Upload a hospital or clinic prescription and we&apos;ll review stock availability for you.
+            Upload a hospital or clinic prescription and we&apos;ll review stock
+            availability for you.
           </p>
           <button
             onClick={() => navigate(PRESCRIPTION_URL)}
@@ -221,8 +226,14 @@ export const MyPrescriptions = () => {
               }}
             >
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#12251e" }}>{preview.name}</div>
-                <div style={{ fontSize: 12, color: "#64748b" }}>{preview.type || "Uploaded file"}</div>
+                <div
+                  style={{ fontSize: 14, fontWeight: 700, color: "#12251e" }}
+                >
+                  {preview.name}
+                </div>
+                <div style={{ fontSize: 12, color: "#64748b" }}>
+                  {preview.type || "Uploaded file"}
+                </div>
               </div>
               <button
                 onClick={() => setPreview(null)}
@@ -244,13 +255,23 @@ export const MyPrescriptions = () => {
               <iframe
                 title={preview.name}
                 src={preview.dataUrl}
-                style={{ width: "100%", height: "70vh", border: "none", borderRadius: 12 }}
+                style={{
+                  width: "100%",
+                  height: "70vh",
+                  border: "none",
+                  borderRadius: 12,
+                }}
               />
             ) : (
               <img
                 src={preview.dataUrl}
                 alt={preview.name}
-                style={{ width: "100%", maxHeight: "72vh", objectFit: "contain", borderRadius: 12 }}
+                style={{
+                  width: "100%",
+                  maxHeight: "72vh",
+                  objectFit: "contain",
+                  borderRadius: 12,
+                }}
               />
             )}
           </div>
@@ -297,7 +318,9 @@ function PrescriptionCard({
         }}
       >
         <div>
-          <div style={{ fontSize: 12, color: "#64748b", marginBottom: 4 }}>Prescription ID</div>
+          <div style={{ fontSize: 12, color: "#64748b", marginBottom: 4 }}>
+            Prescription ID
+          </div>
           <div
             style={{
               fontFamily: "'Sora', sans-serif",
@@ -309,7 +332,9 @@ function PrescriptionCard({
           >
             {item.id}
           </div>
-          <div style={{ fontSize: 12, color: "#64748b" }}>{formatDate(item.createdAt)}</div>
+          <div style={{ fontSize: 12, color: "#64748b" }}>
+            {formatDate(item.createdAt)}
+          </div>
         </div>
 
         <div
@@ -376,7 +401,15 @@ function PrescriptionCard({
                   }}
                 >
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "#12251e" }}>{file.name}</div>
+                    <div
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: "#12251e",
+                      }}
+                    >
+                      {file.name}
+                    </div>
                     <div style={{ fontSize: 12, color: "#64748b" }}>
                       {(file.size / 1024 / 1024).toFixed(2)} MB
                     </div>
@@ -422,33 +455,50 @@ function PrescriptionCard({
             >
               Pharmacist Notes
             </div>
-            <p style={{ fontSize: 13, color: "#1e3a8a", marginBottom: item.estimatedPrice ? 10 : 0 }}>
+            <div
+              style={{
+                fontSize: 13,
+                color: "#1e3a8a",
+                marginBottom: item.estimatedPrice ? 10 : 0,
+                whiteSpace: "pre-line",
+                lineHeight: 1.6,
+              }}
+            >
               {item.reviewNotes}
-            </p>
-            {item.estimatedPrice ? (
-              <div
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                  padding: "8px 12px",
-                  borderRadius: 999,
-                  background: "#dbeafe",
-                  color: "#0d4f5c",
-                  fontWeight: 700,
-                  fontSize: 13,
-                }}
-              >
-                Estimated Price: KES {item.estimatedPrice.toFixed(2)}
-              </div>
-            ) : null}
+            </div>
+            {(() => {
+              const est = Number(item.estimatedPrice ?? NaN);
+              if (!Number.isFinite(est)) return null;
+              return (
+                <div
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "8px 12px",
+                    borderRadius: 999,
+                    background: "#dbeafe",
+                    color: "#0d4f5c",
+                    fontWeight: 700,
+                    fontSize: 13,
+                  }}
+                >
+                  Estimated Price: KES {est.toFixed(2)}
+                </div>
+              );
+            })()}
           </div>
         )}
 
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-          {item.status === "under_review" ? (
-            <WaitingPill />
-          ) : null}
+        <div
+          style={{
+            display: "flex",
+            gap: 12,
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
+          {item.status === "under_review" ? <WaitingPill /> : null}
 
           {item.status === "available" ? (
             <button
@@ -468,12 +518,19 @@ function PrescriptionCard({
                 cursor: "pointer",
               }}
             >
-              {activeCheckoutId === item.id ? "Ready for Checkout" : "Proceed to Payment"}
+              {activeCheckoutId === item.id
+                ? "Ready for Checkout"
+                : "Proceed to Payment"}
             </button>
           ) : null}
 
           {item.status === "out_of_stock" ? (
-            <InfoMessage message="We’ll let you know once the requested medicines are available again." color="#c2410c" bg="#fff7ed" border="#fdba74" />
+            <InfoMessage
+              message="We’ll let you know once the requested medicines are available again."
+              color="#c2410c"
+              bg="#fff7ed"
+              border="#fdba74"
+            />
           ) : null}
 
           {item.status === "rejected" ? (
@@ -524,8 +581,12 @@ function InfoBlock({
       <div style={{ display: "grid", gap: 8 }}>
         {rows.map(([label, value]) => (
           <div key={label}>
-            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 2 }}>{label}</div>
-            <div style={{ fontSize: 13, color: "#12251e", fontWeight: 600 }}>{value}</div>
+            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 2 }}>
+              {label}
+            </div>
+            <div style={{ fontSize: 13, color: "#12251e", fontWeight: 600 }}>
+              {value}
+            </div>
           </div>
         ))}
       </div>
